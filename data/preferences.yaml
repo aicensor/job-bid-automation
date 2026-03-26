@@ -1,0 +1,57 @@
+# ============================================================================
+# Tailor Preferences — Controls how your resume gets tailored
+# ============================================================================
+
+# Tone of the resume
+# Options: formal | balanced | conversational
+tone: balanced
+
+# What to emphasize in bullet points
+# Options: leadership | hands-on | both
+emphasis: both
+
+# Target seniority level for language and framing
+# Options: senior | staff | principal
+targetSeniority: senior
+
+# Skills that should ALWAYS appear regardless of JD
+alwaysIncludeSkills:
+  - TypeScript
+  - React
+  - Node.js
+  - AWS
+  - System Design
+
+# Fields that the AI must NEVER modify
+neverModify:
+  companyNames: true
+  dates: true
+  education: true
+  certifications: true
+
+# Maximum bullet points per role (trim least relevant)
+maxBulletsPerRole: 5
+
+# Only tailor the last N roles (older roles stay as-is)
+yearsToHighlight: 4
+
+# --- Pipeline Config ---
+pipeline:
+  # Minimum score to pass (0-100)
+  scoreThreshold: 85
+
+  # Max refinement iterations
+  maxIterations: 3
+
+  # Primary AI model (via OpenRouter)
+  # Options: primary | fallback1 | fallback2
+  # Models configured in .env (PRIMARY_MODEL, FALLBACK_MODEL_1, etc.)
+  primaryModel: primary
+
+  # Fallback models if primary fails
+  fallbackModels:
+    - fallback1
+    - fallback2
+
+  # Temperature for LLM calls (lower = more consistent)
+  temperature: 0.5

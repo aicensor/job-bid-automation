@@ -1,0 +1,25 @@
+enabled: true
+search:
+  keywords: senior software engineer
+  location: United States
+  workType: remote
+  experienceLevel: mid-senior
+  datePosted: 24hr
+  salary: "5"
+  externalOnly: true
+filter:
+  maxJobsPerRun: 10
+  minKeywordMatchPercent: 30
+  excludeCompanies:
+    - Microsoft
+    - Google
+    - Accenture
+  excludeTitlePatterns: []
+  requireTitlePatterns:
+    - senior
+    - staff
+    - lead
+    - principal
+autoRun:
+  enabled: true
+  maxConcurrent: 1

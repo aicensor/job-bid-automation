@@ -1,0 +1,45 @@
+{
+  "name": "tailor-resume-generator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered resume tailoring engine that auto-generates optimized resumes for specific job postings to rank in top 10 of ATS scoring systems",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "tailor": "tsx src/cli/tailor.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^3.0.53",
+    "@ai-sdk/openai-compatible": "^0.1.0",
+    "ai": "^4.0.0",
+    "cheerio": "^1.2.0",
+    "docx": "^9.6.1",
+    "dotenv": "^17.3.1",
+    "mammoth": "^1.8.0",
+    "natural": "^8.0.0",
+    "next": "^15.1.0",
+    "patchright": "^1.58.2",
+    "pdf-parse": "^1.1.1",
+    "puppeteer": "^23.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "yaml": "^2.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

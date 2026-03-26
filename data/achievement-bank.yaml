@@ -1,0 +1,762 @@
+# =============================================================================
+# Senior Software Engineer Achievement Bank
+# =============================================================================
+# Curated from FAANG resumes, tech career coaches, recruiter insights, and
+# top-performing resume examples (2025-2026).
+#
+# Formula: Action Verb + Task/Contribution + Tools/Skills + Quantified Result
+#
+# Usage: Select and customize bullets that match your actual experience.
+#        Replace placeholders [X%, $Y, N] with your real metrics.
+# =============================================================================
+
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-03-24"
+  total_achievements: 55
+  sources:
+    - "Tech Interview Handbook (techinterviewhandbook.org)"
+    - "IGotAnOffer FAANG Resume Guide"
+    - "BeamJobs Software Engineer Resume Examples"
+    - "TealHQ Resume Templates"
+    - "Enhancv Resume Examples"
+    - "Medium articles from ex-FAANG engineers"
+    - "Reddit r/cscareerquestions community"
+    - "ResumeWorded action verb guides"
+    - "CVCompiler resume examples"
+
+# =============================================================================
+# CATEGORIES
+# =============================================================================
+
+categories:
+
+  # ---------------------------------------------------------------------------
+  # 1. SYSTEM ARCHITECTURE & DESIGN
+  # ---------------------------------------------------------------------------
+  system_architecture:
+    label: "System Architecture & Design"
+    achievements:
+
+      - id: arch-001
+        bullet: "Architected a microservices-based e-commerce platform serving 5M+ monthly users, decomposing a monolithic application into 12 independently deployable services, reducing deployment risk and enabling 3x faster feature delivery."
+        effectiveness:
+          - "Quantifies user scale (5M+) and service count (12)"
+          - "Shows before/after transformation (monolith to microservices)"
+          - "Ties to business outcome (3x faster feature delivery)"
+        action_verb: "Architected"
+        tags: [microservices, system-design, scalability, decomposition]
+        seniority: senior
+
+      - id: arch-002
+        bullet: "Designed and implemented a serverless event-driven architecture using AWS Lambda, API Gateway, and DynamoDB, reducing operational costs by 40% and improving scalability for a user base of 5 million+."
+        effectiveness:
+          - "Names specific AWS services for ATS matching"
+          - "Quantifies cost savings (40%) and scale (5M users)"
+          - "Demonstrates cloud-native thinking"
+        action_verb: "Designed"
+        tags: [serverless, AWS, event-driven, DynamoDB, cost-reduction]
+        seniority: senior
+
+      - id: arch-003
+        bullet: "Developed a multi-tier architecture strategy on AWS that improved system scalability and availability by 67%, supporting zero-downtime deployments across 3 geographic regions."
+        effectiveness:
+          - "Quantifies availability improvement (67%)"
+          - "Shows geographic scope (3 regions)"
+          - "Mentions zero-downtime, a key reliability indicator"
+        action_verb: "Developed"
+        tags: [AWS, high-availability, multi-region, architecture]
+        seniority: senior
+
+      - id: arch-004
+        bullet: "Architected the new back-end in Ruby on Rails to transform a multi-page product application into a single-page app, resulting in $1.2M in annual incremental revenue."
+        effectiveness:
+          - "Directly ties technical decision to revenue ($1.2M)"
+          - "Shows end-to-end ownership of architectural shift"
+          - "Concrete dollar amount is highly memorable"
+        action_verb: "Architected"
+        tags: [backend, SPA, revenue-impact, Ruby]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 2. PERFORMANCE OPTIMIZATION
+  # ---------------------------------------------------------------------------
+  performance_optimization:
+    label: "Performance Optimization"
+    achievements:
+
+      - id: perf-001
+        bullet: "Optimized Redis caching layer to reduce API latency by 71%, improving response times from 850ms to 245ms for 10K+ daily requests."
+        effectiveness:
+          - "Specific before/after metrics (850ms to 245ms)"
+          - "Names the technology (Redis)"
+          - "Quantifies request volume (10K+ daily)"
+        action_verb: "Optimized"
+        tags: [Redis, caching, latency, API-performance]
+        seniority: mid-senior
+
+      - id: perf-002
+        bullet: "Reduced payment processing latency by 40% by redesigning the checkout API using async processing, handling 2M daily transactions."
+        effectiveness:
+          - "FAANG-style XYZ format from Tech Interview Handbook"
+          - "Shows massive scale (2M daily transactions)"
+          - "Ties to critical business flow (payments)"
+        action_verb: "Reduced"
+        tags: [payments, async, API-redesign, high-throughput]
+        seniority: senior
+
+      - id: perf-003
+        bullet: "Optimized SQL database queries and indexing strategies, resulting in a 50% improvement in data retrieval times and reducing average query execution from 1.2s to 0.6s across 15 critical endpoints."
+        effectiveness:
+          - "Specific percentage and absolute time savings"
+          - "Mentions scope (15 critical endpoints)"
+          - "Demonstrates database expertise"
+        action_verb: "Optimized"
+        tags: [SQL, database, query-optimization, indexing]
+        seniority: mid-senior
+
+      - id: perf-004
+        bullet: "Reduced database connections by 80% through connection pooling and query optimization, dropping average latency from 400ms to 45ms and achieving 100% uptime during a Black Friday event processing $3.2M in sales."
+        effectiveness:
+          - "Multiple metrics (80% reduction, 400ms to 45ms)"
+          - "High-stakes context (Black Friday, $3.2M)"
+          - "Shows reliability under pressure"
+        action_verb: "Reduced"
+        tags: [database, connection-pooling, high-availability, e-commerce]
+        seniority: senior
+
+      - id: perf-005
+        bullet: "Boosted application performance by 40% through code profiling, algorithm optimization, and strategic caching, reducing P99 response time from 3s to 800ms."
+        effectiveness:
+          - "Shows methodical approach (profiling, optimization, caching)"
+          - "Uses P99 metric familiar to SRE/platform teams"
+          - "Clear before/after numbers"
+        action_verb: "Boosted"
+        tags: [performance, profiling, caching, algorithms]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 3. SCALABILITY & INFRASTRUCTURE
+  # ---------------------------------------------------------------------------
+  scalability_infrastructure:
+    label: "Scalability & Infrastructure"
+    achievements:
+
+      - id: scale-001
+        bullet: "Led migration of 200+ microservices to Kubernetes, cutting deployment errors by 88% and accelerating release cycles from weekly to daily across 4 engineering teams."
+        effectiveness:
+          - "Quantifies service count (200+) and team scope (4 teams)"
+          - "Shows before/after cadence (weekly to daily)"
+          - "88% error reduction is specific and credible"
+        action_verb: "Led"
+        tags: [Kubernetes, migration, deployment, microservices]
+        seniority: senior
+
+      - id: scale-002
+        bullet: "Spearheaded the adoption of Infrastructure as Code using Terraform and AWS CloudFormation, automating 95% of cloud resource provisioning and cutting deployment time from days to hours."
+        effectiveness:
+          - "Names specific IaC tools for ATS matching"
+          - "Near-complete automation (95%)"
+          - "Dramatic time reduction (days to hours)"
+        action_verb: "Spearheaded"
+        tags: [Terraform, CloudFormation, IaC, automation, AWS]
+        seniority: senior
+
+      - id: scale-003
+        bullet: "Designed and implemented auto-scaling infrastructure on AWS EKS that handled 10x traffic spikes during peak events with zero degradation, supporting 50K concurrent users."
+        effectiveness:
+          - "Quantifies traffic multiplier (10x) and concurrency (50K)"
+          - "Zero degradation shows reliability focus"
+          - "Names specific platform (EKS)"
+        action_verb: "Designed"
+        tags: [auto-scaling, AWS-EKS, traffic-management, reliability]
+        seniority: senior
+
+      - id: scale-004
+        bullet: "Implemented Kubernetes cluster scaling and resource optimization strategies, reducing infrastructure costs by 22% while improving container startup time by 35%."
+        effectiveness:
+          - "Dual metrics (cost and performance)"
+          - "Shows operational efficiency focus"
+          - "Concrete percentages"
+        action_verb: "Implemented"
+        tags: [Kubernetes, cost-optimization, containers, infrastructure]
+        seniority: mid-senior
+
+  # ---------------------------------------------------------------------------
+  # 4. FRONTEND / UI ENGINEERING
+  # ---------------------------------------------------------------------------
+  frontend_ui:
+    label: "Frontend & UI Engineering"
+    achievements:
+
+      - id: fe-001
+        bullet: "Spearheaded the development of a modular React component library adopted by 6 product teams, increasing cross-team development efficiency by 35% and reducing UI inconsistencies by 80%."
+        effectiveness:
+          - "Shows organizational impact (6 teams)"
+          - "Dual metric (efficiency + consistency)"
+          - "Demonstrates platform/shared-tooling mindset"
+        action_verb: "Spearheaded"
+        tags: [React, component-library, design-system, frontend]
+        seniority: senior
+
+      - id: fe-002
+        bullet: "Implemented lazy-loading, code-splitting, and image optimization across web applications, reducing average page load times by 1.5s and achieving a Google Lighthouse performance score of 96."
+        effectiveness:
+          - "Lists specific techniques for ATS"
+          - "Absolute time saved (1.5s) is tangible"
+          - "Industry-standard benchmark (Lighthouse 96)"
+        action_verb: "Implemented"
+        tags: [performance, lazy-loading, code-splitting, Lighthouse, web-vitals]
+        seniority: mid-senior
+
+      - id: fe-003
+        bullet: "Led the migration from AngularJS to React for a customer-facing SaaS platform, improving page render time by 60% and reducing bundle size by 45%, resulting in a 20% increase in user engagement."
+        effectiveness:
+          - "Shows framework migration expertise"
+          - "Triple metric (render time, bundle size, engagement)"
+          - "Ties technical work to user-facing outcome"
+        action_verb: "Led"
+        tags: [React, Angular, migration, SaaS, bundle-optimization]
+        seniority: senior
+
+      - id: fe-004
+        bullet: "Built a real-time collaborative editing feature using WebSockets and CRDT algorithms, serving 15K daily active users with sub-100ms synchronization latency."
+        effectiveness:
+          - "Names advanced technologies (WebSockets, CRDT)"
+          - "Quantifies users (15K DAU) and latency (<100ms)"
+          - "Demonstrates distributed systems knowledge"
+        action_verb: "Built"
+        tags: [WebSockets, real-time, CRDT, collaboration, frontend]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 5. MOBILE DEVELOPMENT
+  # ---------------------------------------------------------------------------
+  mobile_development:
+    label: "Mobile Development"
+    achievements:
+
+      - id: mob-001
+        bullet: "Architected and launched a cross-platform mobile application using React Native, reducing development time by 40% while maintaining 99.7% crash-free sessions, generating $1.2M in additional revenue within the first quarter."
+        effectiveness:
+          - "Revenue impact ($1.2M) grabs recruiter attention"
+          - "Reliability metric (99.7% crash-free)"
+          - "Development efficiency gain (40%)"
+        action_verb: "Architected"
+        tags: [React-Native, cross-platform, mobile, revenue-impact]
+        seniority: senior
+
+      - id: mob-002
+        bullet: "Developed an Android application leveraging on-device ML for personalized content delivery, achieving a 15% increase in user retention and a 4.8-star average app store rating."
+        effectiveness:
+          - "Shows ML/mobile intersection (on-device ML)"
+          - "User-facing metrics (retention, app store rating)"
+          - "Demonstrates product thinking"
+        action_verb: "Developed"
+        tags: [Android, machine-learning, personalization, retention]
+        seniority: mid-senior
+
+      - id: mob-003
+        bullet: "Constructed a high-performing iOS application for a Fortune 500 financial firm, processing over $1M in daily transactions with SOC 2 compliance and biometric authentication."
+        effectiveness:
+          - "Enterprise scale (Fortune 500, $1M daily)"
+          - "Security/compliance context (SOC 2, biometric)"
+          - "Shows fintech domain expertise"
+        action_verb: "Constructed"
+        tags: [iOS, fintech, security, SOC2, Swift]
+        seniority: senior
+
+      - id: mob-004
+        bullet: "Reduced mobile app crash rate from 8% to under 2% through systematic crash analysis, memory leak detection, and proactive monitoring with Crashlytics, improving app store rating from 3.2 to 4.5 stars."
+        effectiveness:
+          - "Clear before/after on two metrics (crash rate and rating)"
+          - "Shows debugging methodology"
+          - "User-visible quality improvement"
+        action_verb: "Reduced"
+        tags: [mobile, crash-analysis, monitoring, Crashlytics, quality]
+        seniority: mid-senior
+
+  # ---------------------------------------------------------------------------
+  # 6. DEVOPS & CI/CD
+  # ---------------------------------------------------------------------------
+  devops_cicd:
+    label: "DevOps & CI/CD"
+    achievements:
+
+      - id: devops-001
+        bullet: "Implemented a fully automated CI/CD pipeline using Jenkins, Docker, and Kubernetes, reducing deployment errors by 70% and cutting release cycle from 2 weeks to same-day delivery."
+        effectiveness:
+          - "Names full toolchain for ATS matching"
+          - "Dramatic time improvement (2 weeks to same-day)"
+          - "Error reduction (70%) shows reliability focus"
+        action_verb: "Implemented"
+        tags: [CI/CD, Jenkins, Docker, Kubernetes, automation]
+        seniority: mid-senior
+
+      - id: devops-002
+        bullet: "Deployed comprehensive monitoring and alerting infrastructure with Prometheus and Grafana, reducing Mean Time to Recovery (MTTR) by 45% and achieving 99.95% service uptime."
+        effectiveness:
+          - "Uses industry-standard metric (MTTR)"
+          - "Names observability tools (Prometheus, Grafana)"
+          - "SLA-level uptime figure (99.95%)"
+        action_verb: "Deployed"
+        tags: [monitoring, Prometheus, Grafana, observability, SRE]
+        seniority: senior
+
+      - id: devops-003
+        bullet: "Automated deployment processes for 30+ microservices, reducing deployment time from 4 hours to 30 minutes and enabling engineering teams to ship 5x more frequently."
+        effectiveness:
+          - "Quantifies service count and time savings"
+          - "5x multiplier is memorable"
+          - "Shows cross-team enablement"
+        action_verb: "Automated"
+        tags: [deployment, automation, microservices, developer-productivity]
+        seniority: senior
+
+      - id: devops-004
+        bullet: "Implemented LaunchDarkly feature flag system adopted by 4 engineering teams, reducing rollback time from 2 hours to under 5 minutes per incident and enabling safe progressive rollouts."
+        effectiveness:
+          - "Names specific tool (LaunchDarkly)"
+          - "Dramatic rollback improvement (2hr to 5min)"
+          - "Shows risk mitigation thinking"
+        action_verb: "Implemented"
+        tags: [feature-flags, LaunchDarkly, rollback, progressive-rollout]
+        seniority: mid-senior
+
+  # ---------------------------------------------------------------------------
+  # 7. DATA ENGINEERING
+  # ---------------------------------------------------------------------------
+  data_engineering:
+    label: "Data Engineering"
+    achievements:
+
+      - id: data-001
+        bullet: "Designed and built scalable ETL pipelines using Apache Spark and Airflow, processing 2TB of daily data with 99.9% reliability and reducing data integration latency by 35%."
+        effectiveness:
+          - "Quantifies data volume (2TB daily)"
+          - "Names industry-standard tools (Spark, Airflow)"
+          - "Reliability metric (99.9%)"
+        action_verb: "Designed"
+        tags: [ETL, Apache-Spark, Airflow, data-pipeline, big-data]
+        seniority: senior
+
+      - id: data-002
+        bullet: "Led migration of legacy ETL processes to a modern Python-based pipeline on AWS, reducing data latency by 50% and supporting a 20% growth in data assets while cutting maintenance overhead by 15%."
+        effectiveness:
+          - "Triple metric (latency, growth, maintenance)"
+          - "Shows modernization leadership"
+          - "Cloud migration context"
+        action_verb: "Led"
+        tags: [ETL, migration, Python, AWS, data-modernization]
+        seniority: senior
+
+      - id: data-003
+        bullet: "Developed and deployed an internal analytics dashboard using Python and Tableau, reducing monthly reporting time by 40% and providing real-time KPI visibility for executive decision-making."
+        effectiveness:
+          - "Shows stakeholder awareness (executives)"
+          - "Time savings metric (40%)"
+          - "Demonstrates data visualization skills"
+        action_verb: "Developed"
+        tags: [analytics, Tableau, dashboard, Python, reporting]
+        seniority: mid-senior
+
+      - id: data-004
+        bullet: "Introduced CI/CD pipelines for data infrastructure as code using Terraform, diminishing deployment cycles from weeks to hours and achieving zero-downtime data platform updates."
+        effectiveness:
+          - "Applies DevOps to data engineering (modern practice)"
+          - "Dramatic time reduction (weeks to hours)"
+          - "Zero-downtime shows reliability thinking"
+        action_verb: "Introduced"
+        tags: [Terraform, IaC, data-infrastructure, CI/CD]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 8. LEADERSHIP & MENTORING
+  # ---------------------------------------------------------------------------
+  leadership_mentoring:
+    label: "Leadership & Mentoring"
+    achievements:
+
+      - id: lead-001
+        bullet: "Mentored and developed a team of 15 engineers across 3 seniority levels, resulting in a 30% improvement in employee retention and 4 internal promotions within 18 months."
+        effectiveness:
+          - "Quantifies team size and seniority span"
+          - "Retention metric shows people investment"
+          - "Promotion count is concrete outcome"
+        action_verb: "Mentored"
+        tags: [mentoring, retention, team-development, promotions]
+        seniority: senior-staff
+
+      - id: lead-002
+        bullet: "Built and scaled an engineering team from 5 to 25 members while maintaining velocity metrics above company benchmarks, successfully delivering a $4.5M enterprise SaaS platform."
+        effectiveness:
+          - "5x team growth shows scaling ability"
+          - "Revenue context ($4.5M platform)"
+          - "Maintained velocity during growth (hard to do)"
+        action_verb: "Built"
+        tags: [team-scaling, hiring, SaaS, engineering-management]
+        seniority: senior-staff
+
+      - id: lead-003
+        bullet: "Led a cross-functional team of 8 engineers and 3 designers through an agile transformation, cutting project turnaround time by 30% and increasing sprint velocity by 25%."
+        effectiveness:
+          - "Cross-functional scope (engineers + designers)"
+          - "Process improvement metrics"
+          - "Shows agile leadership"
+        action_verb: "Led"
+        tags: [cross-functional, agile, team-leadership, process-improvement]
+        seniority: senior
+
+      - id: lead-004
+        bullet: "Established an engineering onboarding program that reduced new hire ramp-up time from 3 months to 6 weeks, adopted across 4 teams and contributing to a 35% reduction in annual turnover."
+        effectiveness:
+          - "Concrete time improvement (3 months to 6 weeks)"
+          - "Organizational adoption (4 teams)"
+          - "Turnover reduction shows business impact"
+        action_verb: "Established"
+        tags: [onboarding, retention, process, team-development]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 9. COST OPTIMIZATION
+  # ---------------------------------------------------------------------------
+  cost_optimization:
+    label: "Cost Optimization"
+    achievements:
+
+      - id: cost-001
+        bullet: "Implemented cloud cost optimization strategies across AWS infrastructure, reducing monthly spending by 30% ($300K annual savings) for a 500+ employee organization through right-sizing, reserved instances, and spot fleet adoption."
+        effectiveness:
+          - "Both percentage and dollar amount"
+          - "Organization scale (500+ employees)"
+          - "Lists specific techniques"
+        action_verb: "Implemented"
+        tags: [AWS, cost-optimization, cloud, right-sizing, FinOps]
+        seniority: senior
+
+      - id: cost-002
+        bullet: "Led a high-profile initiative to migrate on-premises infrastructure to a fully cloud-based model, reducing IT expenditure by 45% and eliminating 200+ hours of monthly manual maintenance."
+        effectiveness:
+          - "Dollar-free but shows massive percentage savings"
+          - "Time savings in hours is relatable"
+          - "Shows strategic initiative leadership"
+        action_verb: "Led"
+        tags: [cloud-migration, cost-reduction, infrastructure, modernization]
+        seniority: senior
+
+      - id: cost-003
+        bullet: "Optimized backend services by refactoring legacy code and implementing auto-scaling policies, achieving a 20% performance enhancement while reducing server costs by $150K annually."
+        effectiveness:
+          - "Dual benefit (performance up, costs down)"
+          - "Dollar amount makes savings tangible"
+          - "Shows technical depth (refactoring + auto-scaling)"
+        action_verb: "Optimized"
+        tags: [refactoring, auto-scaling, cost-reduction, backend]
+        seniority: mid-senior
+
+      - id: cost-004
+        bullet: "Conducted quarterly cloud resource audits and implemented automated cleanup policies, identifying and eliminating $50K/quarter in orphaned resources across 3 AWS accounts."
+        effectiveness:
+          - "Shows ongoing operational discipline"
+          - "Specific dollar savings per quarter"
+          - "Demonstrates FinOps practices"
+        action_verb: "Conducted"
+        tags: [FinOps, cloud-audit, AWS, resource-management]
+        seniority: mid-senior
+
+  # ---------------------------------------------------------------------------
+  # 10. SECURITY
+  # ---------------------------------------------------------------------------
+  security:
+    label: "Security"
+    achievements:
+
+      - id: sec-001
+        bullet: "Developed secure authentication protocols using OAuth 2.0 and JWT, reducing unauthorized access attempts by 60% and achieving SOC 2 Type II compliance ahead of the audit deadline."
+        effectiveness:
+          - "Names auth standards (OAuth 2.0, JWT)"
+          - "Quantifies security improvement (60%)"
+          - "Compliance context (SOC 2) shows business awareness"
+        action_verb: "Developed"
+        tags: [authentication, OAuth, JWT, SOC2, compliance]
+        seniority: senior
+
+      - id: sec-002
+        bullet: "Integrated automated security scanning (SAST/DAST) into CI/CD workflows, identifying 23 critical vulnerabilities before production and reducing mean time to remediation from 21 days to 4 days."
+        effectiveness:
+          - "Specific vulnerability count (23 critical)"
+          - "MTTR improvement (21 days to 4 days)"
+          - "Shows shift-left security mindset"
+        action_verb: "Integrated"
+        tags: [SAST, DAST, CI/CD, vulnerability-management, DevSecOps]
+        seniority: senior
+
+      - id: sec-003
+        bullet: "Enhanced user authentication modules with MFA and biometric support, improving security posture and reducing breach attempts by 40% while maintaining sub-2-second login times."
+        effectiveness:
+          - "Balances security with UX (sub-2-second login)"
+          - "Shows practical security implementation"
+          - "Quantifies threat reduction (40%)"
+        action_verb: "Enhanced"
+        tags: [MFA, biometric, authentication, UX, security]
+        seniority: mid-senior
+
+      - id: sec-004
+        bullet: "Reduced critical production vulnerabilities by 72% over 12 months by establishing a security champions program across 5 engineering teams and implementing automated dependency scanning."
+        effectiveness:
+          - "Long-term impact (12 months)"
+          - "Organizational program (security champions)"
+          - "High reduction percentage (72%)"
+        action_verb: "Reduced"
+        tags: [vulnerability-management, security-culture, dependency-scanning]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 11. API DESIGN
+  # ---------------------------------------------------------------------------
+  api_design:
+    label: "API Design"
+    achievements:
+
+      - id: api-001
+        bullet: "Designed and built RESTful APIs using Node.js and Express.js for a customer-facing mobile application, supporting 50K+ daily active users with 99.9% uptime and sub-200ms P95 latency."
+        effectiveness:
+          - "User scale (50K+ DAU)"
+          - "SLA metrics (99.9% uptime, P95 latency)"
+          - "Names tech stack for ATS"
+        action_verb: "Designed"
+        tags: [REST, Node.js, Express, API, mobile-backend]
+        seniority: mid-senior
+
+      - id: api-002
+        bullet: "Developed a GraphQL API layer that unified 8 backend microservices, reducing frontend API calls by 60% and improving mobile app load time by 35%."
+        effectiveness:
+          - "Shows API consolidation thinking"
+          - "Quantifies call reduction and load time"
+          - "Demonstrates GraphQL expertise"
+        action_verb: "Developed"
+        tags: [GraphQL, API-gateway, microservices, frontend-optimization]
+        seniority: senior
+
+      - id: api-003
+        bullet: "Developed a microservices architecture for e-commerce platforms using AWS Lambda and API Gateway, boosting transaction processing throughput by 35% and handling 10K transactions per second."
+        effectiveness:
+          - "Serverless API approach (Lambda + API Gateway)"
+          - "Throughput metric (10K TPS)"
+          - "Business domain context (e-commerce)"
+        action_verb: "Developed"
+        tags: [AWS-Lambda, API-Gateway, serverless, e-commerce, throughput]
+        seniority: senior
+
+      - id: api-004
+        bullet: "Implemented API versioning strategy and comprehensive OpenAPI documentation, reducing partner integration time from 3 weeks to 4 days and supporting 25+ external API consumers."
+        effectiveness:
+          - "Shows API product thinking (versioning, docs)"
+          - "Integration time reduction is unique metric"
+          - "External consumer count shows scale"
+        action_verb: "Implemented"
+        tags: [API-versioning, OpenAPI, documentation, developer-experience]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 12. TESTING & QUALITY
+  # ---------------------------------------------------------------------------
+  testing_quality:
+    label: "Testing & Quality"
+    achievements:
+
+      - id: test-001
+        bullet: "Developed an automated testing framework using Python and Selenium that increased test coverage from 62% to 94%, reducing production bugs by 76% and saving 20 hours of manual QA per sprint."
+        effectiveness:
+          - "Before/after coverage (62% to 94%)"
+          - "Bug reduction (76%) and time savings (20 hrs/sprint)"
+          - "Names testing tools"
+        action_verb: "Developed"
+        tags: [test-automation, Python, Selenium, coverage, QA]
+        seniority: mid-senior
+
+      - id: test-002
+        bullet: "Automated testing and deployments via GitHub Actions, reducing release cycles from 2 days to 4 hours and boosting test coverage from 48% to 85% across 12 repositories."
+        effectiveness:
+          - "Names CI tool (GitHub Actions)"
+          - "Scope (12 repositories)"
+          - "Dual improvement (cycle time + coverage)"
+        action_verb: "Automated"
+        tags: [GitHub-Actions, CI/CD, test-coverage, automation]
+        seniority: mid-senior
+
+      - id: test-003
+        bullet: "Implemented comprehensive unit and integration testing procedures using Jest and React Testing Library, reducing system bugs by 40% and improving deployment confidence across 3 product teams."
+        effectiveness:
+          - "Names modern testing tools"
+          - "Cross-team impact (3 product teams)"
+          - "Deployment confidence is a qualitative win"
+        action_verb: "Implemented"
+        tags: [Jest, React-Testing-Library, unit-testing, integration-testing]
+        seniority: mid-senior
+
+      - id: test-004
+        bullet: "Established a contract testing strategy using Pact for 15+ inter-service APIs, eliminating integration failures in production and reducing cross-team debugging time by 60%."
+        effectiveness:
+          - "Advanced testing approach (contract testing)"
+          - "Zero production integration failures"
+          - "Time savings for multiple teams"
+        action_verb: "Established"
+        tags: [contract-testing, Pact, microservices, API-testing]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 13. MIGRATION & MODERNIZATION
+  # ---------------------------------------------------------------------------
+  migration_modernization:
+    label: "Migration & Modernization"
+    achievements:
+
+      - id: mig-001
+        bullet: "Led a cross-functional team of 12 engineers to migrate legacy systems to a cloud-native architecture on AWS, reducing downtime by 15%, improving data retrieval speeds by 50%, and achieving 99.9% data integrity across 5TB of migrated data."
+        effectiveness:
+          - "Team size (12) shows leadership scope"
+          - "Triple metric (downtime, speed, integrity)"
+          - "Data volume (5TB) quantifies scale"
+        action_verb: "Led"
+        tags: [cloud-migration, legacy, AWS, data-integrity, leadership]
+        seniority: senior
+
+      - id: mig-002
+        bullet: "Migrated 8TB of legacy data into a multi-cloud environment and automated ETL pipelines, reducing manual data processing by 40% and enabling real-time analytics for the first time in the company's history."
+        effectiveness:
+          - "Data volume shows scale (8TB)"
+          - "First-ever capability is a powerful differentiator"
+          - "Multi-cloud shows breadth"
+        action_verb: "Migrated"
+        tags: [data-migration, multi-cloud, ETL, automation, analytics]
+        seniority: senior
+
+      - id: mig-003
+        bullet: "Re-engineered monolithic Java application into a Spring Boot microservices architecture, resulting in 50% more efficient code deployments and enabling independent team ownership of 8 service domains."
+        effectiveness:
+          - "Names tech stack (Java, Spring Boot)"
+          - "Organizational impact (team ownership)"
+          - "Deployment efficiency (50%)"
+        action_verb: "Re-engineered"
+        tags: [Java, Spring-Boot, microservices, monolith-decomposition]
+        seniority: senior
+
+      - id: mig-004
+        bullet: "Spearheaded migration of legacy applications to AWS, achieving a 45% reduction in infrastructure costs, 20% performance improvement, and complete elimination of on-premises hardware dependency."
+        effectiveness:
+          - "Cost and performance dual improvement"
+          - "Complete elimination is a strong absolute claim"
+          - "Shows strategic cloud adoption"
+        action_verb: "Spearheaded"
+        tags: [cloud-migration, AWS, cost-reduction, infrastructure]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 14. DEVELOPER EXPERIENCE & TOOLING
+  # ---------------------------------------------------------------------------
+  developer_experience:
+    label: "Developer Experience & Tooling"
+    achievements:
+
+      - id: dx-001
+        bullet: "Built an internal CLI tool and code generation framework that reduced boilerplate setup time by 80%, adopted by 40+ engineers across the organization."
+        effectiveness:
+          - "Adoption metric (40+ engineers)"
+          - "Time savings (80%)"
+          - "Shows platform engineering mindset"
+        action_verb: "Built"
+        tags: [CLI, code-generation, developer-tooling, DX]
+        seniority: senior
+
+      - id: dx-002
+        bullet: "Deployed 4 new features in a core banking system which reduced the turnaround processing time of 50K loan applications from 9 months to 2 hours."
+        effectiveness:
+          - "Extraordinary time improvement (9 months to 2 hours)"
+          - "Business-critical domain (banking, loans)"
+          - "Application volume (50K) shows scale"
+        action_verb: "Deployed"
+        tags: [fintech, banking, process-automation, feature-delivery]
+        seniority: senior
+
+      - id: dx-003
+        bullet: "Introduced a shared Kanban board workflow and turnkey QA playbook for new engineers, cutting release cycle time by 40% and keeping the product roadmap on track for 4 consecutive quarterly launches."
+        effectiveness:
+          - "Process improvement with sustained results"
+          - "4 consecutive quarters shows consistency"
+          - "Combines process and people development"
+        action_verb: "Introduced"
+        tags: [process-improvement, Kanban, QA, release-management]
+        seniority: senior
+
+  # ---------------------------------------------------------------------------
+  # 15. MACHINE LEARNING & AI INTEGRATION
+  # ---------------------------------------------------------------------------
+  ml_ai:
+    label: "Machine Learning & AI Integration"
+    achievements:
+
+      - id: ml-001
+        bullet: "Spearheaded the integration of machine learning algorithms for personalized user experiences, driving a 25% boost in user engagement and a 15% increase in retention rates across 2M monthly active users."
+        effectiveness:
+          - "User base scale (2M MAU)"
+          - "Dual engagement metrics"
+          - "Shows ML applied to product, not just research"
+        action_verb: "Spearheaded"
+        tags: [machine-learning, personalization, engagement, retention]
+        seniority: senior
+
+      - id: ml-002
+        bullet: "Developed a high-frequency trading platform leveraging ML-based signal detection, processing 10K transactions per second and contributing to a 15% increase in trading volumes."
+        effectiveness:
+          - "Extreme throughput (10K TPS)"
+          - "Revenue-adjacent metric (trading volume)"
+          - "Shows domain + ML intersection"
+        action_verb: "Developed"
+        tags: [high-frequency-trading, ML, throughput, fintech]
+        seniority: senior
+
+# =============================================================================
+# WRITING GUIDE
+# =============================================================================
+
+writing_guide:
+  formula: "Action Verb + What You Did + Tools/Technologies + Quantified Result"
+
+  star_method:
+    S: "Situation - brief context (optional in bullet, save for interviews)"
+    T: "Task - the specific challenge or goal"
+    A: "Action - what YOU did (not the team)"
+    R: "Result - quantified outcome (percentage, dollar amount, time saved, users impacted)"
+
+  top_action_verbs:
+    architecture: [Architected, Designed, Engineered, Developed, Built]
+    optimization: [Optimized, Reduced, Improved, Boosted, Accelerated]
+    leadership: [Led, Mentored, Built, Scaled, Established, Spearheaded]
+    automation: [Automated, Implemented, Deployed, Streamlined, Integrated]
+    innovation: [Pioneered, Introduced, Launched, Created, Invented]
+    analysis: [Analyzed, Identified, Evaluated, Diagnosed, Investigated]
+
+  metric_types:
+    performance: ["latency reduction (ms or %)", "throughput (requests/sec)", "P99/P95 response time", "page load time"]
+    reliability: ["uptime (99.9%)", "crash-free rate", "MTTR reduction", "error rate reduction"]
+    business: ["revenue impact ($)", "cost savings ($)", "user engagement (%)", "conversion rate (%)"]
+    scale: ["users served (DAU/MAU)", "data volume (TB)", "transactions per second", "concurrent connections"]
+    efficiency: ["deployment frequency", "release cycle time", "manual effort reduction (hours)", "test coverage (%)"]
+    team: ["team size grown", "retention rate", "promotions achieved", "onboarding time reduction"]
+
+  common_mistakes:
+    - "Listing responsibilities instead of achievements"
+    - "Missing quantified metrics entirely"
+    - "Using passive voice (was responsible for) instead of active (Led, Built)"
+    - "Failing to show YOUR specific contribution vs. team contribution"
+    - "Not tailoring bullets to the target role's keywords"
+    - "Including too many average bullets instead of fewer strong ones"
+
+  ats_tips:
+    - "Use standard section headings (Experience, Education, Skills)"
+    - "Include exact technology names from the job description"
+    - "Submit as PDF created from Word/Docs (not image-based PDF)"
+    - "Avoid tables, columns, headers/footers, and graphics"
+    - "Use standard fonts and 10-12pt size"
+    - "Spell out acronyms at least once (e.g., CI/CD - Continuous Integration/Continuous Deployment)"
