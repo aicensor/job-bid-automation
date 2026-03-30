@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { getModel } from '@/ai/providers';
+import { withModelFallback } from '@/ai/timeout';
 import type { Resume, PipelineConfig } from '@/lib/types';
 
 // ============================================================================
@@ -68,15 +68,17 @@ export async function cleanAiPhrases(
 
   console.log(`  → ${flagged.length} bullets flagged for AI phrase cleanup`);
 
-  const { model } = getModel('rewrite', config);
+  const flaggedPrompt = flagged.map((b, i) => `${i + 1}. ${b}`).join('\n');
 
-  const { object } = await generateObject({
-    model,
-    schema: cleanupSchema,
-    system: `You are an editor who makes resume bullet points sound natural and human-written. Replace corporate buzzwords and AI-generated phrases with specific, concrete language. Keep the same meaning but make it sound like a real engineer wrote it.`,
-    prompt: `Clean up these bullet points that contain AI-sounding language:\n\n${flagged.map((b, i) => `${i + 1}. ${b}`).join('\n')}`,
-    temperature: 0.4,
-  });
+  const { object } = await withModelFallback('rewrite', 'ai-phrase-cleaner', (model) =>
+    generateObject({
+      model,
+      schema: cleanupSchema,
+      system: `You are an editor who makes resume bullet points sound natural and human-written. Replace corporate buzzwords and AI-generated phrases with specific, concrete language. Keep the same meaning but make it sound like a real engineer wrote it.`,
+      prompt: `Clean up these bullet points that contain AI-sounding language:\n\n${flaggedPrompt}`,
+      temperature: 0.4,
+    })
+  );
 
   // Apply cleanups
   let updated = JSON.parse(JSON.stringify(resume)) as Resume;

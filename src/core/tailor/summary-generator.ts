@@ -1,5 +1,5 @@
 import { generateText } from 'ai';
-import { getModel } from '@/ai/providers';
+import { withModelFallback } from '@/ai/timeout';
 import type { Resume, ParsedJob, TailorPreferences, PipelineConfig } from '@/lib/types';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -22,8 +22,6 @@ export async function generateSummary(
   preferences: TailorPreferences,
   config: PipelineConfig
 ): Promise<Resume> {
-  const { model } = getModel('rewrite', config);
-
   const prompt = `
 ## Target Role
 ${job.title} at ${job.company}
@@ -54,12 +52,14 @@ Target seniority: ${preferences.targetSeniority}
 Generate a 3-4 sentence professional summary optimized for this role.
   `.trim();
 
-  const { text } = await generateText({
-    model,
-    system: SYSTEM_PROMPT,
-    prompt,
-    temperature: config.temperature,
-  });
+  const { text } = await withModelFallback('rewrite', 'summary-generator', (model) =>
+    generateText({
+      model,
+      system: SYSTEM_PROMPT,
+      prompt,
+      temperature: config.temperature,
+    })
+  );
 
   console.log(`  → Generated ${text.split(' ').length}-word summary`);
 

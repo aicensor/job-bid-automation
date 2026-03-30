@@ -30,7 +30,7 @@ export default function TailorProgress() {
     <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
       <LoadingSpinner size="lg" />
       <h3 className="text-lg font-semibold mt-4 mb-2">Tailoring your resume...</h3>
-      <p className="text-sm text-gray-500 mb-6">This typically takes 30-90 seconds</p>
+      <p className="text-sm text-gray-500 mb-6">This typically takes 60~180 seconds</p>
 
       <div className="max-w-md mx-auto space-y-2 text-left">
         {steps.map((step, i) => (

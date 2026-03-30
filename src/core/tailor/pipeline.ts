@@ -10,6 +10,7 @@ import { validateTruth } from '@/core/refiner/truth-validator';
 import { scoreResume } from '@/core/scorer/composite-scorer';
 import { validateBlockedFields } from '@/core/validators/blocked-fields';
 import { defaultConfig } from '@/ai/providers';
+import { startRun, log, endRun } from '@/lib/pipeline-log';
 
 // ============================================================================
 // Main Tailoring Pipeline — Orchestrates the full resume transformation
@@ -17,45 +18,30 @@ import { defaultConfig } from '@/ai/providers';
 
 export interface PipelineInput {
   baseResume: Resume;
-  jobDescription: string;          // raw JD text or URL
-  achievements: Achievement[];      // achievement bank
+  jobDescription: string;
+  achievements: Achievement[];
   preferences: TailorPreferences;
   config?: Partial<PipelineConfig>;
 }
 
-/**
- * Main pipeline: Base Resume + JD → Tailored Resume (scored & validated)
- *
- * Flow:
- * 1. Parse JD → structured requirements
- * 2. Score base resume (before)
- * 3. Analyze gaps between resume and JD
- * 4. Rewrite bullets using JD language + achievements
- * 5. Generate targeted summary
- * 6. Reorder sections by relevance
- * 7. 3-pass refinement (keywords → AI cleanup → truth check)
- * 8. Score tailored resume (after)
- * 9. Loop if score < threshold (max 3 iterations)
- */
 export async function tailorResume(input: PipelineInput): Promise<TailorResult> {
   const config = { ...defaultConfig, ...input.config };
   const { baseResume, jobDescription, achievements, preferences } = input;
 
-  console.log('═══════════════════════════════════════════════════');
-  console.log('  TAILOR RESUME PIPELINE');
-  console.log('═══════════════════════════════════════════════════');
+  startRun();
+  log('info', 'pipeline', 'TAILOR RESUME PIPELINE');
 
-  // Step 1: Parse job description
-  console.log('\n[Step 1/9] Parsing job description...');
+  // Step 1: Parse JD
+  log('info', 'step-1', 'Parsing job description...');
   const parsedJob = await parseJobDescription(jobDescription, config);
-  console.log(`  → ${parsedJob.company} | ${parsedJob.title} | ${parsedJob.keywords.length} keywords`);
+  log('info', 'step-1', `Done: ${parsedJob.company} | ${parsedJob.title} | ${parsedJob.keywords.length} keywords`);
 
-  // Step 2: Score base resume (before)
-  console.log('\n[Step 2/9] Scoring base resume...');
+  // Step 2: Score base resume
+  log('info', 'step-2', 'Scoring base resume...');
   const scoreBefore = await scoreResume(baseResume, parsedJob, config);
-  console.log(`  → Base score: ${scoreBefore.overall}/100`);
+  log('info', 'step-2', `Done: base score ${scoreBefore.overall}/100`);
 
-  // Step 3: Deep copy resume for tailoring
+  // Deep copy for tailoring
   let tailored: Resume = JSON.parse(JSON.stringify(baseResume));
   tailored.isBase = false;
   tailored.jobId = parsedJob.id;
@@ -63,63 +49,65 @@ export async function tailorResume(input: PipelineInput): Promise<TailorResult> 
   let iterations = 0;
   let currentScore = scoreBefore;
 
-  // Iterative improvement loop
   while (iterations < config.maxIterations) {
     iterations++;
-    console.log(`\n${'─'.repeat(50)}`);
-    console.log(`  ITERATION ${iterations}/${config.maxIterations}`);
-    console.log(`${'─'.repeat(50)}`);
+    log('info', 'iteration', `Starting iteration ${iterations}/${config.maxIterations}`);
 
-    // Step 4: Analyze gaps
-    console.log('\n[Step 3/9] Analyzing gaps...');
+    // Step 3: Analyze gaps
+    log('info', 'step-3', 'Analyzing gaps...');
     const gaps = await analyzeGaps(tailored, parsedJob, achievements);
-    console.log(`  → ${gaps.missingSkills.length} missing skills, ${gaps.relevantAchievements.length} usable achievements`);
+    log('info', 'step-3', `Done: ${gaps.missingSkills.length} missing skills, ${gaps.relevantAchievements.length} achievements`);
 
-    // Step 5: Rewrite bullets
-    console.log('\n[Step 4/9] Rewriting experience bullets...');
-    tailored = await rewriteBullets(tailored, parsedJob, gaps, preferences, config);
+    // Steps 4+5: Rewrite bullets + generate summary (parallel)
+    log('info', 'step-4+5', 'Rewriting bullets + generating summary (parallel)...');
+    const [rewrittenResume, summaryResume] = await Promise.all([
+      rewriteBullets(tailored, parsedJob, gaps, preferences, config),
+      generateSummary(tailored, parsedJob, preferences, config),
+    ]);
+    tailored = { ...rewrittenResume, summary: summaryResume.summary };
+    log('info', 'step-4+5', 'Done: bullets rewritten + summary generated');
 
-    // Step 6: Generate summary
-    console.log('\n[Step 5/9] Generating targeted summary...');
-    tailored = await generateSummary(tailored, parsedJob, preferences, config);
-
-    // Step 7: Reorder sections
-    console.log('\n[Step 6/9] Reordering sections by relevance...');
+    // Step 6: Reorder sections
+    log('info', 'step-6', 'Reordering sections...');
     tailored = reorderSections(tailored, parsedJob);
+    log('info', 'step-6', `Done: ${tailored.sectionOrder.join(' → ')}`);
 
-    // Step 8: 3-pass refinement
-    console.log('\n[Step 7/9] Pass 1: Injecting missing keywords...');
+    // Step 7: Keyword injection
+    log('info', 'step-7a', 'Injecting missing keywords...');
     tailored = await injectKeywords(tailored, parsedJob, config);
+    log('info', 'step-7a', 'Done');
 
-    console.log('[Step 7/9] Pass 2: Cleaning AI-sounding phrases...');
-    tailored = await cleanAiPhrases(tailored, config);
-
-    console.log('[Step 7/9] Pass 3: Validating truthfulness...');
-    const truthResult = await validateTruth(tailored, baseResume, config);
+    // Step 7b+c: AI cleanup + truth validation (parallel)
+    log('info', 'step-7bc', 'Cleaning AI phrases + validating truth (parallel)...');
+    const [cleanedResume, truthResult] = await Promise.all([
+      cleanAiPhrases(tailored, config),
+      validateTruth(tailored, baseResume, config),
+    ]);
+    tailored = cleanedResume;
     if (truthResult.violations.length > 0) {
-      console.warn(`  ⚠️ ${truthResult.violations.length} truth violations found — reverting`);
+      log('warn', 'step-7bc', `${truthResult.violations.length} truth violations found — reverting`);
       tailored = truthResult.correctedResume;
     }
+    log('info', 'step-7bc', 'Done');
 
-    // Validate blocked fields haven't changed
+    // Validate blocked fields
     validateBlockedFields(baseResume, tailored, preferences);
 
-    // Step 9: Score tailored resume
-    console.log('\n[Step 8/9] Scoring tailored resume...');
+    // Step 8: Score tailored resume
+    log('info', 'step-8', 'Scoring tailored resume...');
     currentScore = await scoreResume(tailored, parsedJob, config);
-    console.log(`  → Score: ${currentScore.overall}/100 (threshold: ${config.scoreThreshold})`);
+    log('info', 'step-8', `Done: score ${currentScore.overall}/100 (threshold: ${config.scoreThreshold})`);
 
     if (currentScore.passesThreshold) {
-      console.log('\n  ✅ Score passes threshold!');
+      log('info', 'pipeline', 'Score passes threshold!');
       break;
     }
 
     if (iterations < config.maxIterations) {
-      console.log(`  ⚠️ Below threshold, running iteration ${iterations + 1}...`);
+      log('warn', 'pipeline', `Below threshold, running iteration ${iterations + 1}...`);
     }
   }
 
-  // Build result
   const result: TailorResult = {
     baseResumeId: baseResume.id,
     jobId: parsedJob.id,
@@ -127,15 +115,12 @@ export async function tailorResume(input: PipelineInput): Promise<TailorResult> 
     scoreBefore,
     scoreAfter: currentScore,
     iterations,
-    changes: [], // TODO: track individual changes
+    changes: [],
     generatedAt: new Date(),
   };
 
-  console.log('\n═══════════════════════════════════════════════════');
-  console.log('  PIPELINE COMPLETE');
-  console.log(`  Score: ${scoreBefore.overall} → ${currentScore.overall} (+${currentScore.overall - scoreBefore.overall})`);
-  console.log(`  Iterations: ${iterations}`);
-  console.log('═══════════════════════════════════════════════════');
+  log('info', 'pipeline', `COMPLETE: ${scoreBefore.overall} → ${currentScore.overall} (+${currentScore.overall - scoreBefore.overall}) in ${iterations} iteration(s)`);
+  endRun();
 
   return result;
 }

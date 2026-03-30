@@ -16,6 +16,13 @@ export default function Sidebar() {
         <NavLink href="/tailor" icon="&#x2728;" label="New Tailoring" />
         <NavLink href="/history" icon="&#x1F4CB;" label="History" />
 
+        {/* Bidman */}
+        <div className="mt-6">
+          <p className="px-3 text-[10px] uppercase tracking-wider text-sidebar-text/50 mb-2">Bidman</p>
+          <NavLink href="/bidman" icon="&#x1F3AF;" label="Bid" />
+          <NavLink href="/bidman/log" icon="&#x1F4D1;" label="Log" />
+        </div>
+
         {/* Phase 2 */}
         <div className="mt-6">
           <p className="px-3 text-[10px] uppercase tracking-wider text-sidebar-text/50 mb-2">Job Search</p>

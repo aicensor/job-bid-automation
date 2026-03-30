@@ -47,7 +47,6 @@ export async function POST(req: NextRequest) {
       const puppeteer = await import('puppeteer');
       const browser = await puppeteer.default.launch({
         headless: true,
-        executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
 

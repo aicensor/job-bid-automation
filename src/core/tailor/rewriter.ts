@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { getModel } from '@/ai/providers';
+import { withModelFallback } from '@/ai/timeout';
 import type { Resume, ParsedJob, TailorPreferences, PipelineConfig } from '@/lib/types';
 import type { GapAnalysis } from './gap-analyzer';
 import { readFileSync } from 'fs';
@@ -33,8 +33,6 @@ export async function rewriteBullets(
   preferences: TailorPreferences,
   config: PipelineConfig
 ): Promise<Resume> {
-  const { model } = getModel('rewrite', config);
-
   // Only rewrite recent experience (based on preferences)
   const experienceToRewrite = resume.experience.filter((_, i) =>
     i < preferences.yearsToHighlight
@@ -42,13 +40,15 @@ export async function rewriteBullets(
 
   const prompt = buildRewritePrompt(experienceToRewrite, job, gaps, preferences);
 
-  const { object } = await generateObject({
-    model,
-    schema: rewrittenExperienceSchema,
-    system: SYSTEM_PROMPT,
-    prompt,
-    temperature: config.temperature,
-  });
+  const { object } = await withModelFallback('rewrite', 'bullet-rewriter', (model) =>
+    generateObject({
+      model,
+      schema: rewrittenExperienceSchema,
+      system: SYSTEM_PROMPT,
+      prompt,
+      temperature: config.temperature,
+    })
+  );
 
   // Merge rewritten bullets back into resume
   const updated = { ...resume };

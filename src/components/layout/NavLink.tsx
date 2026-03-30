@@ -12,10 +12,11 @@ interface NavLinkProps {
 
 export default function NavLink({ href, icon, label, disabled }: NavLinkProps) {
   const pathname = usePathname();
-  // Exact match for short paths to avoid /jobs matching /jobs/queue
-  const isActive = href === '/'
-    ? pathname === '/'
-    : pathname === href || (href !== '/jobs' && pathname.startsWith(href + '/'));
+  // Exact match for root and parent paths that have sub-routes
+  const exactMatchPaths = ['/', '/jobs', '/bidman'];
+  const isActive = exactMatchPaths.includes(href)
+    ? pathname === href
+    : pathname === href || pathname.startsWith(href + '/');
 
   if (disabled) {
     return (

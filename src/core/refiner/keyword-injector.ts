@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { getModel } from '@/ai/providers';
+import { withModelFallback } from '@/ai/timeout';
 import type { Resume, ParsedJob, PipelineConfig } from '@/lib/types';
 
 // ============================================================================
@@ -31,24 +31,29 @@ export async function injectKeywords(
   job: ParsedJob,
   config: PipelineConfig
 ): Promise<Resume> {
-  // Find missing keywords
+  // Find missing keywords — cap at 15 to avoid LLM timeouts
+  const MAX_KEYWORDS = 15;
   const resumeText = getAllText(resume).toLowerCase();
-  const missing = job.keywords.filter(k => !resumeText.includes(k.toLowerCase()));
+  const allMissing = job.keywords.filter(k => !resumeText.includes(k.toLowerCase()));
 
-  if (missing.length === 0) {
+  if (allMissing.length === 0) {
     console.log('  → No missing keywords');
     return resume;
   }
 
-  console.log(`  → ${missing.length} missing keywords to inject`);
+  // Prioritize required skill keywords over general keywords
+  const requiredSkillNames = new Set(job.requiredSkills.map(s => s.skill.toLowerCase()));
+  const missing = allMissing
+    .sort((a, b) => {
+      const aReq = requiredSkillNames.has(a.toLowerCase()) ? 0 : 1;
+      const bReq = requiredSkillNames.has(b.toLowerCase()) ? 0 : 1;
+      return aReq - bReq;
+    })
+    .slice(0, MAX_KEYWORDS);
 
-  const { model } = getModel('rewrite', config);
+  console.log(`  → ${allMissing.length} missing keywords, injecting top ${missing.length}`);
 
-  const { object } = await generateObject({
-    model,
-    schema: injectionSchema,
-    system: `You are a resume keyword optimization expert. Your task is to naturally inject missing keywords into a resume WITHOUT fabricating experience. Only inject keywords that the candidate genuinely has based on their existing experience. Skip keywords that would require fabrication.`,
-    prompt: `
+  const prompt = `
 ## Missing Keywords
 ${missing.join(', ')}
 
@@ -65,9 +70,17 @@ Skills:
 ${resume.skills.map(c => `${c.category}: ${c.skills.join(', ')}`).join('\n')}
 
 For each missing keyword, find the most natural place to insert it. Modify the existing text minimally. Skip keywords that would require fabrication.
-    `.trim(),
-    temperature: 0.3,
-  });
+  `.trim();
+
+  const { object } = await withModelFallback('rewrite', 'keyword-injector', (model) =>
+    generateObject({
+      model,
+      schema: injectionSchema,
+      system: `You are a resume keyword optimization expert. Your task is to naturally inject missing keywords into a resume WITHOUT fabricating experience. Only inject keywords that the candidate genuinely has based on their existing experience. Skip keywords that would require fabrication.`,
+      prompt,
+      temperature: 0.3,
+    })
+  );
 
   // Apply injections
   let updated = JSON.parse(JSON.stringify(resume)) as Resume;

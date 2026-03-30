@@ -1,5 +1,5 @@
 import { generateObject } from 'ai';
-import { getModel, type ModelTask } from '@/ai/providers';
+import { withModelFallback } from '@/ai/timeout';
 import { parsedJobSchema } from '@/data/schema/job';
 import type { ParsedJob, PipelineConfig } from '@/lib/types';
 import { readFileSync } from 'fs';
@@ -22,17 +22,15 @@ export async function parseJobDescription(
   rawJD: string,
   config: PipelineConfig
 ): Promise<ParsedJob> {
-  const { model, provider } = getModel('parse', config);
-
-  console.log(`[jd-parser] Parsing JD with ${provider}...`);
-
-  const { object } = await generateObject({
-    model,
-    schema: parsedJobSchema,
-    system: SYSTEM_PROMPT,
-    prompt: `Parse the following job description:\n\n${rawJD}`,
-    temperature: 0.3, // low temp for accurate extraction
-  });
+  const { object } = await withModelFallback('parse', 'jd-parser', (model) =>
+    generateObject({
+      model,
+      schema: parsedJobSchema,
+      system: SYSTEM_PROMPT,
+      prompt: `Parse the following job description:\n\n${rawJD}`,
+      temperature: 0.3,
+    })
+  );
 
   const parsedJob = {
     id: generateId(),
@@ -42,7 +40,6 @@ export async function parseJobDescription(
   } as ParsedJob;
 
   console.log(`[jd-parser] Extracted ${parsedJob.keywords.length} keywords, ${parsedJob.requiredSkills.length} required skills`);
-
   return parsedJob;
 }
 
