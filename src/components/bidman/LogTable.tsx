@@ -88,7 +88,7 @@ export default function LogTable() {
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Company</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600 w-28">Industry</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600 w-20">Score</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600 w-20">Bidder</th>
+              {/* Bidder column hidden — bidman only sees own logs */}
               <th className="text-left px-4 py-3 font-semibold text-gray-600 w-24">Actions</th>
             </tr>
           </thead>
@@ -119,7 +119,7 @@ export default function LogTable() {
                     <ScoreBadge score={entry.scoreAfter} size="sm" />
                   </div>
                 </td>
-                <td className="px-4 py-3 text-gray-500">{entry.bidder || '-'}</td>
+                {/* Bidder column hidden */}
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <a

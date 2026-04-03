@@ -8,6 +8,9 @@ import type { Resume } from '@/lib/types';
 interface TailorActionProps {
   job: ScrapedJob;
   selectedResume: string;
+  tailoringInstructions?: string;
+  strictTruthCheck?: boolean;
+  bidder?: string;
   onComplete: (result: TailorResultSummary) => void;
   onError: (error: string) => void;
 }
@@ -119,7 +122,7 @@ function PipelineProgress() {
   );
 }
 
-export default function TailorAction({ job, selectedResume, onComplete, onError }: TailorActionProps) {
+export default function TailorAction({ job, selectedResume, tailoringInstructions, strictTruthCheck, bidder, onComplete, onError }: TailorActionProps) {
   const [tailoring, setTailoring] = useState(false);
 
   const handleTailor = async () => {
@@ -134,6 +137,9 @@ export default function TailorAction({ job, selectedResume, onComplete, onError 
           jobUrl: job.url,
           job,
           resumeFile: selectedResume,
+          tailoringInstructions,
+          strictTruthCheck,
+          bidder,
         }),
       });
 

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getLogEntries } from '@/lib/bidman-log';
+import { getSessionUser } from '@/lib/auth';
 import fs from 'fs';
 import path from 'path';
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await getSessionUser();
+
     // If ?resultId= is provided, return the full tailored result JSON
     const resultId = req.nextUrl.searchParams.get('resultId');
     if (resultId) {
@@ -17,6 +20,12 @@ export async function GET(req: NextRequest) {
     }
 
     const entries = getLogEntries();
+
+    // Admin sees all, bidman sees only their own
+    if (user && user.role !== 'admin') {
+      return NextResponse.json(entries.filter((e) => e.bidder === user.username));
+    }
+
     return NextResponse.json(entries);
   } catch (error) {
     console.error('[api/bidman/log] Error:', error);

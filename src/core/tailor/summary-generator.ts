@@ -20,7 +20,8 @@ export async function generateSummary(
   resume: Resume,
   job: ParsedJob,
   preferences: TailorPreferences,
-  config: PipelineConfig
+  config: PipelineConfig,
+  additionalInstructions?: string
 ): Promise<Resume> {
   const prompt = `
 ## Target Role
@@ -48,7 +49,7 @@ ${resume.summary || '(none)'}
 Tone: ${preferences.tone}
 Emphasis: ${preferences.emphasis}
 Target seniority: ${preferences.targetSeniority}
-
+${additionalInstructions ? `\n## Additional Instructions\n${additionalInstructions}\n` : ''}
 Generate a 3-4 sentence professional summary optimized for this role.
   `.trim();
 

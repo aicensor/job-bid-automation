@@ -7,35 +7,77 @@ import ResumeSelector from './ResumeSelector';
 import TailorAction, { type TailorResultSummary } from './TailorAction';
 import ScoreBadge from '@/components/shared/ScoreBadge';
 import type { ScrapedJob } from '@/core/scraper/universal-scraper';
+import type { FitResult } from '@/app/api/bidman/fit-check/route';
 
 interface ResumeFile {
   name: string;
   size: number;
+  instructions?: string;
+  strictTruthCheck?: boolean;
 }
 
 interface BidmanWorkflowProps {
   availableResumes: ResumeFile[];
+  bidder?: string;
 }
 
-type WorkflowStep = 'input' | 'found' | 'tailoring' | 'done';
+type WorkflowStep = 'input' | 'checking' | 'found' | 'tailoring' | 'done';
 
-export default function BidmanWorkflow({ availableResumes }: BidmanWorkflowProps) {
+const FIT_THRESHOLD = 40; // below this = "low fit" warning
+
+export default function BidmanWorkflow({ availableResumes, bidder }: BidmanWorkflowProps) {
   const [step, setStep] = useState<WorkflowStep>('input');
   const [job, setJob] = useState<ScrapedJob | null>(null);
   const [selectedResume, setSelectedResume] = useState(availableResumes[0]?.name || '');
   const [result, setResult] = useState<TailorResultSummary | null>(null);
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
+  const [fitResults, setFitResults] = useState<FitResult[]>([]);
+  const [fitLoading, setFitLoading] = useState(false);
+  const [lowFitAcknowledged, setLowFitAcknowledged] = useState(false);
 
-  const handleJobFound = (scrapedJob: ScrapedJob) => {
+  const runFitCheck = async (scrapedJob: ScrapedJob) => {
+    setFitLoading(true);
+    try {
+      const res = await fetch('/api/bidman/fit-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resumeFiles: availableResumes.map((r) => r.name),
+          jobDescription: scrapedJob.description,
+          mainTechStacks: scrapedJob.mainTechStacks || '',
+          jobTitle: scrapedJob.title,
+        }),
+      });
+      if (res.ok) {
+        const results = (await res.json()) as FitResult[];
+        setFitResults(results);
+        // Auto-select best match
+        if (results.length > 0 && results[0].fitScore > 0) {
+          setSelectedResume(results[0].resumeFile);
+        }
+      }
+    } catch {
+      // Fit check is non-critical, proceed without it
+    } finally {
+      setFitLoading(false);
+    }
+  };
+
+  const handleJobFound = async (scrapedJob: ScrapedJob) => {
     setJob(scrapedJob);
-    setStep('found');
     setError('');
+    setLowFitAcknowledged(false);
+    setStep('checking');
+    await runFitCheck(scrapedJob);
+    setStep('found');
   };
 
   const handleClear = () => {
     setJob(null);
     setResult(null);
+    setFitResults([]);
+    setLowFitAcknowledged(false);
     setStep('input');
     setError('');
   };
@@ -71,13 +113,18 @@ export default function BidmanWorkflow({ availableResumes }: BidmanWorkflowProps
     }
   };
 
+  const bestFit = fitResults.length > 0 ? fitResults[0] : null;
+  const selectedFit = fitResults.find((f) => f.resumeFile === selectedResume);
+  const allLowFit = bestFit ? bestFit.fitScore < FIT_THRESHOLD : false;
+  const canProceed = !allLowFit || lowFitAcknowledged;
+
   return (
     <div className="space-y-4">
       {/* Step 1: URL Input */}
       <JobUrlInput
         onJobFound={handleJobFound}
         onError={setError}
-        disabled={step === 'tailoring'}
+        disabled={step === 'tailoring' || step === 'checking'}
       />
 
       {/* Error */}
@@ -87,8 +134,22 @@ export default function BidmanWorkflow({ availableResumes }: BidmanWorkflowProps
         </div>
       )}
 
+      {/* Fit checking indicator */}
+      {step === 'checking' && job && (
+        <>
+          <JobPreview job={job} onClear={handleClear} />
+          <div className="bg-blue-50 rounded-xl border border-blue-100 p-4 flex items-center gap-3">
+            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div>
+              <p className="text-sm text-blue-700">Scoring resume-job fit...</p>
+              <p className="text-[10px] text-blue-500 mt-0.5">Running ATS scorer against your resumes (10-30s)</p>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Step 2: Job Preview + Resume Selection */}
-      {job && step !== 'input' && (
+      {job && (step === 'found' || step === 'tailoring' || step === 'done') && (
         <>
           <JobPreview job={job} onClear={handleClear} />
 
@@ -97,13 +158,47 @@ export default function BidmanWorkflow({ availableResumes }: BidmanWorkflowProps
             selected={selectedResume}
             onSelect={setSelectedResume}
             disabled={step === 'tailoring' || step === 'done'}
+            fitResults={fitResults}
+            fitThreshold={FIT_THRESHOLD}
           />
 
+          {/* Low fit warning for all resumes */}
+          {allLowFit && !lowFitAcknowledged && step === 'found' && (
+            <div className="bg-amber-50 rounded-xl border border-amber-200 p-5">
+              <p className="text-sm font-semibold text-amber-800 mb-1">
+                None of your assigned resumes are a strong fit for this role
+              </p>
+              <p className="text-xs text-amber-700 mb-3">
+                Best match is <span className="font-medium">{bestFit?.resumeFile}</span> scoring {bestFit?.fitScore}/100.
+                {bestFit && bestFit.missingSkills.length > 0 && (
+                  <> Missing: {bestFit.missingSkills.slice(0, 5).join(', ')}{bestFit.missingSkills.length > 5 ? ` +${bestFit.missingSkills.length - 5} more` : ''}</>
+                )}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setLowFitAcknowledged(true)}
+                  className="px-4 py-1.5 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
+                >
+                  Proceed Anyway
+                </button>
+                <button
+                  onClick={handleClear}
+                  className="px-4 py-1.5 text-xs border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors"
+                >
+                  Try Different Job
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Step 3: Tailor Button / Progress */}
-          {step === 'found' && (
+          {step === 'found' && canProceed && (
             <TailorAction
               job={job}
               selectedResume={selectedResume}
+              tailoringInstructions={availableResumes.find((r) => r.name === selectedResume)?.instructions}
+              strictTruthCheck={availableResumes.find((r) => r.name === selectedResume)?.strictTruthCheck}
+              bidder={bidder}
               onComplete={handleComplete}
               onError={setError}
             />

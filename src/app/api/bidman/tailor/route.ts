@@ -62,10 +62,13 @@ function loadPreferences(): TailorPreferences {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { jobUrl, job, resumeFile } = body as {
+    const { jobUrl, job, resumeFile, tailoringInstructions, strictTruthCheck, bidder } = body as {
       jobUrl: string;
       job: ScrapedJob;
       resumeFile: string;
+      tailoringInstructions?: string;
+      strictTruthCheck?: boolean;
+      bidder?: string;
     };
 
     if (!job || !resumeFile) {
@@ -92,6 +95,8 @@ export async function POST(req: NextRequest) {
       achievements,
       preferences,
       config: defaultConfig,
+      additionalInstructions: tailoringInstructions,
+      strictTruthCheck: strictTruthCheck ?? true,
     });
 
     // 3. Save result JSON
@@ -128,7 +133,7 @@ export async function POST(req: NextRequest) {
       companyName: job.company,
       industry: job.industry || '',
       jobLink: jobUrl,
-      bidder: '',
+      bidder: bidder || '',
       tailoredResumeId: id,
       tailoredResumePath: '',
       originalResume: resumeFile,

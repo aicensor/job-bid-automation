@@ -22,11 +22,13 @@ export interface PipelineInput {
   achievements: Achievement[];
   preferences: TailorPreferences;
   config?: Partial<PipelineConfig>;
+  additionalInstructions?: string;
+  strictTruthCheck?: boolean;
 }
 
 export async function tailorResume(input: PipelineInput): Promise<TailorResult> {
   const config = { ...defaultConfig, ...input.config };
-  const { baseResume, jobDescription, achievements, preferences } = input;
+  const { baseResume, jobDescription, achievements, preferences, additionalInstructions, strictTruthCheck = true } = input;
 
   startRun();
   log('info', 'pipeline', 'TAILOR RESUME PIPELINE');
@@ -61,8 +63,8 @@ export async function tailorResume(input: PipelineInput): Promise<TailorResult> 
     // Steps 4+5: Rewrite bullets + generate summary (parallel)
     log('info', 'step-4+5', 'Rewriting bullets + generating summary (parallel)...');
     const [rewrittenResume, summaryResume] = await Promise.all([
-      rewriteBullets(tailored, parsedJob, gaps, preferences, config),
-      generateSummary(tailored, parsedJob, preferences, config),
+      rewriteBullets(tailored, parsedJob, gaps, preferences, config, additionalInstructions),
+      generateSummary(tailored, parsedJob, preferences, config, additionalInstructions),
     ]);
     tailored = { ...rewrittenResume, summary: summaryResume.summary };
     log('info', 'step-4+5', 'Done: bullets rewritten + summary generated');
@@ -78,17 +80,23 @@ export async function tailorResume(input: PipelineInput): Promise<TailorResult> 
     log('info', 'step-7a', 'Done');
 
     // Step 7b+c: AI cleanup + truth validation (parallel)
-    log('info', 'step-7bc', 'Cleaning AI phrases + validating truth (parallel)...');
-    const [cleanedResume, truthResult] = await Promise.all([
-      cleanAiPhrases(tailored, config),
-      validateTruth(tailored, baseResume, config),
-    ]);
-    tailored = cleanedResume;
-    if (truthResult.violations.length > 0) {
-      log('warn', 'step-7bc', `${truthResult.violations.length} truth violations found — reverting`);
-      tailored = truthResult.correctedResume;
+    if (strictTruthCheck) {
+      log('info', 'step-7bc', 'Cleaning AI phrases + validating truth (parallel)...');
+      const [cleanedResume, truthResult] = await Promise.all([
+        cleanAiPhrases(tailored, config),
+        validateTruth(tailored, baseResume, config),
+      ]);
+      tailored = cleanedResume;
+      if (truthResult.violations.length > 0) {
+        log('warn', 'step-7bc', `${truthResult.violations.length} truth violations found — reverting`);
+        tailored = truthResult.correctedResume;
+      }
+      log('info', 'step-7bc', 'Done');
+    } else {
+      log('info', 'step-7bc', 'Strict truth checking disabled — cleaning AI phrases only...');
+      tailored = await cleanAiPhrases(tailored, config);
+      log('info', 'step-7bc', 'Done');
     }
-    log('info', 'step-7bc', 'Done');
 
     // Validate blocked fields
     validateBlockedFields(baseResume, tailored, preferences);

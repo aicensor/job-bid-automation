@@ -31,14 +31,15 @@ export async function rewriteBullets(
   job: ParsedJob,
   gaps: GapAnalysis,
   preferences: TailorPreferences,
-  config: PipelineConfig
+  config: PipelineConfig,
+  additionalInstructions?: string
 ): Promise<Resume> {
   // Only rewrite recent experience (based on preferences)
   const experienceToRewrite = resume.experience.filter((_, i) =>
     i < preferences.yearsToHighlight
   );
 
-  const prompt = buildRewritePrompt(experienceToRewrite, job, gaps, preferences);
+  const prompt = buildRewritePrompt(experienceToRewrite, job, gaps, preferences, additionalInstructions);
 
   const { object } = await withModelFallback('rewrite', 'bullet-rewriter', (model) =>
     generateObject({
@@ -74,7 +75,8 @@ function buildRewritePrompt(
   experience: Resume['experience'],
   job: ParsedJob,
   gaps: GapAnalysis,
-  preferences: TailorPreferences
+  preferences: TailorPreferences,
+  additionalInstructions?: string
 ): string {
   return `
 ## Target Job
@@ -103,7 +105,7 @@ ${gaps.relevantAchievements.map(a =>
 - Tone: ${preferences.tone}
 - Emphasis: ${preferences.emphasis}
 - Max bullets per role: ${preferences.maxBulletsPerRole}
-
+${additionalInstructions ? `\n## Additional Instructions\n${additionalInstructions}\n` : ''}
 ## Current Experience to Rewrite
 ${experience.map(exp => `
 ### ${exp.title} at ${exp.company} (${exp.startDate} - ${exp.endDate})
