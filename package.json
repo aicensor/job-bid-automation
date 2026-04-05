@@ -16,6 +16,7 @@
     "@ai-sdk/google": "^1.2.22",
     "@ai-sdk/openai-compatible": "^0.1.0",
     "ai": "^4.0.0",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.8.0",
     "cheerio": "^1.2.0",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
+    "@types/bcrypt": "^6.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.0.0",

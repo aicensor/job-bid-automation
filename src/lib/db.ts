@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import path from 'path';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 // ============================================================================
 // SQLite Database — Singleton + Schema + Seed
@@ -44,10 +44,23 @@ function initSchema(db: Database.Database) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       resume_filename TEXT NOT NULL,
+      main_skills TEXT DEFAULT '',
       tailoring_instructions TEXT DEFAULT '',
       strict_truth_check INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE(user_id, resume_filename)
+    );
+
+    CREATE TABLE IF NOT EXISTS job_search_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      job_url TEXT NOT NULL,
+      job_title TEXT NOT NULL,
+      company TEXT NOT NULL,
+      tech_stacks TEXT DEFAULT '',
+      industry TEXT DEFAULT '',
+      job_data TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
 
@@ -55,7 +68,7 @@ function initSchema(db: Database.Database) {
   const adminExists = db.prepare('SELECT id FROM users WHERE role = ?').get('admin');
   if (!adminExists) {
     const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
-    const hash = bcrypt.hashSync(defaultPassword, 10);
+    const hash = bcrypt.hashSync(defaultPassword, 8);
     db.prepare(
       'INSERT INTO users (username, password_hash, role, status) VALUES (?, ?, ?, ?)'
     ).run('admin', hash, 'admin', 'approved');
@@ -86,6 +99,7 @@ export interface DbResumeAssignment {
   id: number;
   user_id: number;
   resume_filename: string;
+  main_skills: string;
   tailoring_instructions: string;
   strict_truth_check: number;
   created_at: string;

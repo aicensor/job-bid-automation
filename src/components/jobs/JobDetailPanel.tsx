@@ -247,12 +247,27 @@ function AddToQueueButton({ detail }: { detail: JobDetailData }) {
   );
 }
 
+function fallbackCopy(text: string) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+}
+
 // --- Copy Link Button ---
 function CopyLinkButton({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(url);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).catch(() => fallbackCopy(url));
+    } else {
+      fallbackCopy(url);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

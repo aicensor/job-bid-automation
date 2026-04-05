@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import JobSearchForm, { type SearchFilters } from '@/components/jobs/JobSearchForm';
 import JobCard from '@/components/jobs/JobCard';
 import JobDetailPanel from '@/components/jobs/JobDetailPanel';
+
+const CACHE_KEY = 'jobSearchCache';
 
 interface JobResult {
   jobId: string;
@@ -19,6 +21,34 @@ interface JobResult {
   applyUrl?: string;
 }
 
+interface SearchCache {
+  jobs: JobResult[];
+  filters: SearchFilters;
+  page: number;
+  hasMore: boolean;
+  selectedJobId: string | null;
+  timestamp: number;
+}
+
+function loadCache(): SearchCache | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const cache = JSON.parse(raw) as SearchCache;
+    // Expire after 10 minutes
+    if (Date.now() - cache.timestamp > 10 * 60 * 1000) return null;
+    return cache;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(cache: SearchCache) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch { /* ignore quota errors */ }
+}
+
 export default function JobsPage() {
   const router = useRouter();
   const [jobs, setJobs] = useState<JobResult[]>([]);
@@ -28,6 +58,26 @@ export default function JobsPage() {
   const [hasMore, setHasMore] = useState(false);
   const [lastFilters, setLastFilters] = useState<SearchFilters | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [restored, setRestored] = useState(false);
+
+  // Restore from cache on mount
+  useEffect(() => {
+    const cache = loadCache();
+    if (cache) {
+      setJobs(cache.jobs);
+      setLastFilters(cache.filters);
+      setPage(cache.page);
+      setHasMore(cache.hasMore);
+      setSelectedJobId(cache.selectedJobId);
+    }
+    setRestored(true);
+  }, []);
+
+  // Save to cache whenever results change
+  useEffect(() => {
+    if (!restored || !lastFilters || jobs.length === 0) return;
+    saveCache({ jobs, filters: lastFilters, page, hasMore, selectedJobId, timestamp: Date.now() });
+  }, [jobs, lastFilters, page, hasMore, selectedJobId, restored]);
 
   const handleSearch = async (filters: SearchFilters, pageNum = 0) => {
     setLoading(true);
@@ -79,7 +129,6 @@ export default function JobsPage() {
   };
 
   const handleTailor = (jobDetail: any) => {
-    // Store job detail in sessionStorage and navigate to tailor page
     sessionStorage.setItem('tailorJob', JSON.stringify({
       title: jobDetail.title,
       company: jobDetail.company,
@@ -93,7 +142,6 @@ export default function JobsPage() {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Find Jobs</h1>
         <p className="text-sm text-gray-500 mt-1">
@@ -101,20 +149,16 @@ export default function JobsPage() {
         </p>
       </div>
 
-      {/* Search Form */}
-      <JobSearchForm onSearch={handleSearch} loading={loading} />
+      <JobSearchForm onSearch={handleSearch} loading={loading} initialFilters={lastFilters} />
 
-      {/* Error */}
       {error && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
           {error}
         </div>
       )}
 
-      {/* Results */}
       {jobs.length > 0 && (
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Job List (2/5) */}
           <div className="lg:col-span-2 space-y-3">
             <p className="text-sm text-gray-500 font-medium">
               {jobs.length} jobs found
@@ -129,7 +173,6 @@ export default function JobsPage() {
               />
             ))}
 
-            {/* Load More */}
             {hasMore && (
               <button
                 onClick={handleLoadMore}
@@ -141,7 +184,6 @@ export default function JobsPage() {
             )}
           </div>
 
-          {/* Job Detail (3/5) */}
           <div className="lg:col-span-3 lg:sticky lg:top-8 lg:self-start">
             <JobDetailPanel
               jobId={selectedJobId}
@@ -152,7 +194,6 @@ export default function JobsPage() {
         </div>
       )}
 
-      {/* Empty state */}
       {!loading && jobs.length === 0 && lastFilters && (
         <div className="mt-8 text-center text-gray-500 text-sm">
           No jobs found. Try adjusting your search filters.

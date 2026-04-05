@@ -1,5 +1,5 @@
 import { randomBytes, createHmac } from 'crypto';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { cookies } from 'next/headers';
 import { getDb, type DbUser } from './db';
 
@@ -14,7 +14,7 @@ const HMAC_SECRET = process.env.SESSION_SECRET || 'tailor-resume-default-secret-
 // --- Password ---
 
 export function hashPassword(password: string): string {
-  return bcrypt.hashSync(password, 10);
+  return bcrypt.hashSync(password, 8);
 }
 
 export function verifyPassword(password: string, hash: string): boolean {

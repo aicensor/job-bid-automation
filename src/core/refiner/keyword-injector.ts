@@ -76,7 +76,12 @@ For each missing keyword, find the most natural place to insert it. Modify the e
     generateObject({
       model,
       schema: injectionSchema,
-      system: `You are a resume keyword optimization expert. Your task is to naturally inject missing keywords into a resume WITHOUT fabricating experience. Only inject keywords that the candidate genuinely has based on their existing experience. Skip keywords that would require fabrication.`,
+      system: `You are a resume keyword optimization expert. Inject missing keywords ONLY where they fit naturally into existing text. Rules:
+- Do NOT add "by XX%" or any fabricated metrics
+- Do NOT add bold (**) around injected keywords
+- Make minimal changes — swap a synonym or add a parenthetical, don't rewrite the whole bullet
+- Skip keywords that would require fabrication or feel forced
+- It's better to skip a keyword than to make a bullet sound unnatural`,
       prompt,
       temperature: 0.3,
     })

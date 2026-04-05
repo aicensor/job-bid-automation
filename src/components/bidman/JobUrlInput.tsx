@@ -1,8 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import type { ScrapedJob } from '@/core/scraper/universal-scraper';
+
+interface HistoryEntry {
+  id: number;
+  job_url: string;
+  job_title: string;
+  company: string;
+  tech_stacks: string;
+  industry: string;
+  job_data: string;
+  created_at: string;
+}
 
 interface JobUrlInputProps {
   onJobFound: (job: ScrapedJob) => void;
@@ -15,6 +26,49 @@ export default function JobUrlInput({ onJobFound, onError, disabled }: JobUrlInp
   const [loading, setLoading] = useState(false);
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualText, setManualText] = useState('');
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const loadHistory = async () => {
+    try {
+      const res = await fetch('/api/bidman/job-history');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setHistory(data);
+      }
+    } catch { /* ignore */ }
+  };
+
+  useEffect(() => { loadHistory(); }, []);
+
+  const saveToHistory = async (job: ScrapedJob) => {
+    try {
+      await fetch('/api/bidman/job-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobUrl: job.url,
+          jobTitle: job.title,
+          company: job.company,
+          techStacks: job.mainTechStacks || '',
+          industry: job.industry || '',
+          jobData: job,
+        }),
+      });
+      loadHistory();
+    } catch { /* ignore */ }
+  };
+
+  const clearHistory = async () => {
+    await fetch('/api/bidman/job-history', { method: 'DELETE' });
+    setHistory([]);
+    setShowHistory(false);
+  };
+
+  const handleJobFound = (job: ScrapedJob) => {
+    saveToHistory(job);
+    onJobFound(job);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,9 +89,9 @@ export default function JobUrlInput({ onJobFound, onError, disabled }: JobUrlInp
     setLoading(true);
     onError('');
     setShowManualInput(false);
+    setShowHistory(false);
 
     try {
-      // Try server-side scraping first
       const res = await fetch('/api/jobs/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,9 +104,8 @@ export default function JobUrlInput({ onJobFound, onError, disabled }: JobUrlInp
         throw new Error(data.error || 'Failed to scrape job posting');
       }
 
-      onJobFound(data as ScrapedJob);
+      handleJobFound(data as ScrapedJob);
     } catch {
-      // Server scraping failed — show manual paste fallback
       setShowManualInput(true);
       onError('');
     } finally {
@@ -83,13 +136,36 @@ export default function JobUrlInput({ onJobFound, onError, disabled }: JobUrlInp
         throw new Error(data.error || 'Failed to parse job description');
       }
 
-      onJobFound(data as ScrapedJob);
+      handleJobFound(data as ScrapedJob);
       setShowManualInput(false);
     } catch (err) {
       onError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectHistory = (entry: HistoryEntry) => {
+    setShowHistory(false);
+    setUrl(entry.job_url);
+    try {
+      const job = JSON.parse(entry.job_data) as ScrapedJob;
+      onJobFound(job);
+    } catch {
+      onError('Failed to load job from history');
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr + 'Z');
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
   };
 
   return (
@@ -122,12 +198,64 @@ export default function JobUrlInput({ onJobFound, onError, disabled }: JobUrlInp
             )}
           </button>
         </div>
-        <p className="text-xs text-gray-400 mt-2">
-          Supports LinkedIn, Indeed, Glassdoor, company career pages, and most job boards
-        </p>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-xs text-gray-400">
+            Supports LinkedIn, Indeed, Glassdoor, company career pages, and most job boards
+          </p>
+          {history.length > 0 && !disabled && (
+            <button
+              type="button"
+              onClick={() => setShowHistory(!showHistory)}
+              className="text-xs text-primary hover:underline shrink-0"
+            >
+              {showHistory ? 'Hide History' : `History (${history.length})`}
+            </button>
+          )}
+        </div>
       </form>
 
-      {/* Manual paste fallback when server scraping fails */}
+      {/* Job search history */}
+      {showHistory && history.length > 0 && (
+        <div className="border border-gray-100 rounded-lg overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-100">
+            <p className="text-[10px] text-gray-500 uppercase font-semibold tracking-wide">Recent Jobs</p>
+            <button onClick={clearHistory} className="text-[10px] text-red-400 hover:text-red-600">Clear All</button>
+          </div>
+          <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+            {history.map((entry) => (
+              <button
+                key={entry.id}
+                onClick={() => handleSelectHistory(entry)}
+                className="w-full text-left px-3 py-2.5 hover:bg-blue-50 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900 truncate">{entry.job_title}</p>
+                    <p className="text-xs text-gray-500">
+                      {entry.company}
+                      {entry.industry && <span className="text-gray-400"> &middot; {entry.industry}</span>}
+                    </p>
+                    {entry.tech_stacks && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {entry.tech_stacks.split(',').slice(0, 5).map((t) => (
+                          <span key={t.trim()} className="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded">
+                            {t.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-gray-400 shrink-0 whitespace-nowrap mt-0.5">
+                    {formatDate(entry.created_at)}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Manual paste fallback */}
       {showManualInput && (
         <div className="border-t border-gray-100 pt-4">
           <div className="bg-amber-50 rounded-lg border border-amber-200 p-3 mb-3">

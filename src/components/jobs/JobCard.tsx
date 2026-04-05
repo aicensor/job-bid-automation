@@ -2,6 +2,17 @@
 
 import { useState } from 'react';
 
+function fallbackCopy(text: string) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+}
+
 interface JobCardProps {
   jobId: string;
   title: string;
@@ -27,7 +38,11 @@ export default function JobCard({
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(copyUrl);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(copyUrl).catch(() => fallbackCopy(copyUrl));
+    } else {
+      fallbackCopy(copyUrl);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

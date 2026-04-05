@@ -36,13 +36,17 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
-  // Auth pages: redirect if already logged in
+  // Auth pages: redirect if already logged in, clear bad cookies
   if (pathname === '/login' || pathname === '/register') {
     if (token) {
       const { valid, expired } = await verifyToken(token);
       if (valid && !expired) {
         return NextResponse.redirect(new URL('/bidman', request.url));
       }
+      // Invalid/expired token — clear it and let them see the login page
+      const response = NextResponse.next();
+      response.cookies.delete(SESSION_COOKIE);
+      return response;
     }
     return NextResponse.next();
   }

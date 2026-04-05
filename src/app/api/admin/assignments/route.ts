@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { userId, resumeFilename, tailoringInstructions, strictTruthCheck } = await req.json();
+  const { userId, resumeFilename, mainSkills, tailoringInstructions, strictTruthCheck } = await req.json();
 
   if (!userId || !resumeFilename) {
     return NextResponse.json({ error: 'userId and resumeFilename required' }, { status: 400 });
@@ -46,12 +46,13 @@ export async function POST(req: NextRequest) {
   const strictVal = strictTruthCheck === false ? 0 : 1;
   try {
     db.prepare(
-      `INSERT INTO resume_assignments (user_id, resume_filename, tailoring_instructions, strict_truth_check)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO resume_assignments (user_id, resume_filename, main_skills, tailoring_instructions, strict_truth_check)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(user_id, resume_filename) DO UPDATE SET
+       main_skills = excluded.main_skills,
        tailoring_instructions = excluded.tailoring_instructions,
        strict_truth_check = excluded.strict_truth_check`
-    ).run(Number(userId), resumeFilename, tailoringInstructions || '', strictVal);
+    ).run(Number(userId), resumeFilename, mainSkills || '', tailoringInstructions || '', strictVal);
 
     return NextResponse.json({ success: true });
   } catch (error) {

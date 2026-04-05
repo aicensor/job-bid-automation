@@ -9,6 +9,7 @@ import EmptyState from '@/components/shared/EmptyState';
 interface ResumeFile {
   name: string;
   size: number;
+  mainSkills: string;
   instructions: string;
   strictTruthCheck: boolean;
 }
@@ -16,7 +17,7 @@ interface ResumeFile {
 function getAssignedResumes(userId: number): ResumeFile[] {
   const db = getDb();
   const assignments = db
-    .prepare('SELECT resume_filename, tailoring_instructions, strict_truth_check FROM resume_assignments WHERE user_id = ?')
+    .prepare('SELECT resume_filename, main_skills, tailoring_instructions, strict_truth_check FROM resume_assignments WHERE user_id = ?')
     .all(userId) as DbResumeAssignment[];
 
   const dir = path.join(process.cwd(), 'data', 'base-resume');
@@ -27,6 +28,7 @@ function getAssignedResumes(userId: number): ResumeFile[] {
     .map((a) => ({
       name: a.resume_filename,
       size: fs.statSync(path.join(dir, a.resume_filename)).size,
+      mainSkills: a.main_skills || '',
       instructions: a.tailoring_instructions || '',
       strictTruthCheck: a.strict_truth_check === 1,
     }));

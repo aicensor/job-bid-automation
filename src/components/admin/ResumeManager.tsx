@@ -18,6 +18,7 @@ interface Assignment {
   id: number;
   user_id: number;
   resume_filename: string;
+  main_skills: string;
   tailoring_instructions: string;
   strict_truth_check: number;
 }
@@ -31,6 +32,7 @@ export default function ResumeManager({ initialResumes }: ResumeManagerProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [mainSkills, setMainSkills] = useState<Record<string, string>>({});
   const [instructions, setInstructions] = useState<Record<string, string>>({});
   const [strictChecks, setStrictChecks] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
@@ -90,14 +92,18 @@ export default function ResumeManager({ initialResumes }: ResumeManagerProps) {
   const loadAssignments = async (user: User) => {
     setSelectedUser(user);
     const res = await fetch(`/api/admin/assignments?userId=${user.id}`);
-    const data = (await res.json()) as Assignment[];
+    const raw = await res.json();
+    const data = Array.isArray(raw) ? (raw as Assignment[]) : [];
     setAssignments(data);
+    const skillsMap: Record<string, string> = {};
     const instrMap: Record<string, string> = {};
     const strictMap: Record<string, boolean> = {};
     data.forEach((a) => {
+      skillsMap[a.resume_filename] = a.main_skills || '';
       instrMap[a.resume_filename] = a.tailoring_instructions || '';
       strictMap[a.resume_filename] = a.strict_truth_check === 1;
     });
+    setMainSkills(skillsMap);
     setInstructions(instrMap);
     setStrictChecks(strictMap);
   };
@@ -116,7 +122,7 @@ export default function ResumeManager({ initialResumes }: ResumeManagerProps) {
       await fetch('/api/admin/assignments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: selectedUser.id, resumeFilename: filename, tailoringInstructions: '', strictTruthCheck: true }),
+        body: JSON.stringify({ userId: selectedUser.id, resumeFilename: filename, mainSkills: '', tailoringInstructions: '', strictTruthCheck: true }),
       });
     }
 
@@ -133,6 +139,7 @@ export default function ResumeManager({ initialResumes }: ResumeManagerProps) {
       body: JSON.stringify({
         userId: selectedUser.id,
         resumeFilename: filename,
+        mainSkills: mainSkills[filename] || '',
         tailoringInstructions: instructions[filename] || '',
         strictTruthCheck: strictChecks[filename] ?? true,
       }),
@@ -239,12 +246,25 @@ export default function ResumeManager({ initialResumes }: ResumeManagerProps) {
                           </label>
                           {isAssigned && (
                             <div className="ml-7 mt-2 space-y-2">
-                              <textarea
-                                value={instructions[r.name] || ''}
-                                onChange={(e) => setInstructions({ ...instructions, [r.name]: e.target.value })}
-                                placeholder="Custom tailoring instructions for this resume..."
-                                className="w-full h-16 px-3 py-2 border border-gray-200 rounded-lg text-xs resize-y outline-none focus:ring-1 focus:ring-primary"
-                              />
+                              <div>
+                                <label className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">Main Skills</label>
+                                <input
+                                  type="text"
+                                  value={mainSkills[r.name] || ''}
+                                  onChange={(e) => setMainSkills({ ...mainSkills, [r.name]: e.target.value })}
+                                  placeholder="e.g. C#, .NET, Azure, React, SQL Server, Docker"
+                                  className="w-full mt-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">Tailoring Instructions</label>
+                                <textarea
+                                  value={instructions[r.name] || ''}
+                                  onChange={(e) => setInstructions({ ...instructions, [r.name]: e.target.value })}
+                                  placeholder="Custom tailoring instructions for this resume..."
+                                  className="w-full mt-1 h-16 px-3 py-2 border border-gray-200 rounded-lg text-xs resize-y outline-none focus:ring-1 focus:ring-primary"
+                                />
+                              </div>
                               <div className="flex items-center justify-between">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                   <input

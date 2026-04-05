@@ -37,6 +37,16 @@ const AI_PHRASE_PATTERNS = [
   /end-to-end/i,    // overused
 ];
 
+// Structural AI patterns — checked across all bullets, not individual
+const STRUCTURAL_AI_CHECKS = {
+  // Bullets with fabricated-looking "by XX%" at the end
+  fabricatedMetricPattern: /(?:reducing|improving|increasing|boosting|cutting|decreasing|enhancing|accelerating|streamlining)\s+\w[\w\s]*\bby\s+\d+%/i,
+  // Over-bolding: 3+ bold phrases in one bullet
+  overBoldPattern: /(\*\*[^*]+\*\*.*){3,}/,
+  // Bold on soft skills / generic phrases
+  softSkillBoldPattern: /\*\*(cross-functional collaboration|code reviews?|technical design discussions?|architectural decisions?|data protection|responsive UI|accessible UI|cloud-based SaaS|best practices|agile methodologies?)\*\*/i,
+};
+
 const cleanupSchema = z.object({
   cleanups: z.array(z.object({
     original: z.string(),
@@ -55,27 +65,61 @@ export async function cleanAiPhrases(
   config: PipelineConfig
 ): Promise<Resume> {
 
-  // Quick scan for obvious AI phrases
+  // Quick scan for obvious AI phrases + structural patterns
   const allText = getAllBullets(resume);
-  const flagged = allText.filter(text =>
-    AI_PHRASE_PATTERNS.some(p => p.test(text))
-  );
+  const flagged = new Set<string>();
 
-  if (flagged.length === 0) {
+  // Pass 1: obvious AI buzzwords
+  for (const text of allText) {
+    if (AI_PHRASE_PATTERNS.some(p => p.test(text))) flagged.add(text);
+  }
+
+  // Pass 2: structural AI patterns (fabricated metrics, over-bolding, soft-skill bolding)
+  for (const text of allText) {
+    if (STRUCTURAL_AI_CHECKS.fabricatedMetricPattern.test(text)) flagged.add(text);
+    if (STRUCTURAL_AI_CHECKS.overBoldPattern.test(text)) flagged.add(text);
+    if (STRUCTURAL_AI_CHECKS.softSkillBoldPattern.test(text)) flagged.add(text);
+  }
+
+  // Pass 3: check for repeated bold keywords across bullets (same phrase bolded 3+ times)
+  const boldCounts = new Map<string, number>();
+  for (const text of allText) {
+    const bolds = text.match(/\*\*[^*]+\*\*/g) || [];
+    for (const b of bolds) {
+      boldCounts.set(b, (boldCounts.get(b) || 0) + 1);
+    }
+  }
+  const overusedBolds = new Set([...boldCounts.entries()].filter(([, c]) => c >= 3).map(([k]) => k));
+  if (overusedBolds.size > 0) {
+    for (const text of allText) {
+      if ([...overusedBolds].some(b => text.includes(b))) flagged.add(text);
+    }
+  }
+
+  if (flagged.size === 0) {
     console.log('  → No AI phrases detected');
     return resume;
   }
 
-  console.log(`  → ${flagged.length} bullets flagged for AI phrase cleanup`);
+  const flaggedArr = [...flagged];
+  console.log(`  → ${flaggedArr.length} bullets flagged for AI phrase cleanup`);
 
-  const flaggedPrompt = flagged.map((b, i) => `${i + 1}. ${b}`).join('\n');
+  const flaggedPrompt = flaggedArr.map((b, i) => `${i + 1}. ${b}`).join('\n');
+
+  // Build specific instructions based on what we detected
+  const issues: string[] = [];
+  const metricsCount = flaggedArr.filter(t => STRUCTURAL_AI_CHECKS.fabricatedMetricPattern.test(t)).length;
+  if (metricsCount > 0) issues.push(`${metricsCount} bullets have suspicious "by XX%" metrics — remove fabricated percentages. If the metric wasn't in the original resume, remove it or replace with a concrete description of what improved.`);
+  if (overusedBolds.size > 0) issues.push(`These bold keywords are overused (3+ times each): ${[...overusedBolds].join(', ')} — keep bold only on first occurrence, remove bold from the rest.`);
+  const softBoldCount = flaggedArr.filter(t => STRUCTURAL_AI_CHECKS.softSkillBoldPattern.test(t)).length;
+  if (softBoldCount > 0) issues.push(`${softBoldCount} bullets bold non-technical phrases like "cross-functional collaboration" or "code reviews" — remove bold from soft skills, only bold specific technologies.`);
 
   const { object } = await withModelFallback('rewrite', 'ai-phrase-cleaner', (model) =>
     generateObject({
       model,
       schema: cleanupSchema,
-      system: `You are an editor who makes resume bullet points sound natural and human-written. Replace corporate buzzwords and AI-generated phrases with specific, concrete language. Keep the same meaning but make it sound like a real engineer wrote it.`,
-      prompt: `Clean up these bullet points that contain AI-sounding language:\n\n${flaggedPrompt}`,
+      system: `You are an editor who makes resume bullet points sound natural and human-written. Your job is to make AI-generated text undetectable. Replace corporate buzzwords with plain language. Remove fabricated metrics. Reduce excessive bolding. Keep the same meaning but make it sound like the candidate actually wrote it.`,
+      prompt: `Clean up these bullet points:\n\n${flaggedPrompt}\n\nSpecific issues found:\n${issues.map(i => '- ' + i).join('\n')}`,
       temperature: 0.4,
     })
   );

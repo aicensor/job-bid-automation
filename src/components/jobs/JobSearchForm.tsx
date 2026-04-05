@@ -13,22 +13,32 @@ export interface SearchFilters {
   externalOnly: boolean;
 }
 
+const defaultFilters: SearchFilters = {
+  keywords: 'senior software engineer',
+  location: 'United States',
+  workType: 'remote',
+  experienceLevel: 'mid-senior',
+  datePosted: '24hr',
+  salary: '',
+  limit: 25,
+  externalOnly: true,
+};
+
 interface JobSearchFormProps {
   onSearch: (filters: SearchFilters) => void;
   loading: boolean;
+  initialFilters?: SearchFilters | null;
 }
 
-export default function JobSearchForm({ onSearch, loading }: JobSearchFormProps) {
-  const [filters, setFilters] = useState<SearchFilters>({
-    keywords: 'senior software engineer',
-    location: 'United States',
-    workType: 'remote',
-    experienceLevel: 'mid-senior',
-    datePosted: '24hr',
-    salary: '',
-    limit: 25,
-    externalOnly: true,
-  });
+export default function JobSearchForm({ onSearch, loading, initialFilters }: JobSearchFormProps) {
+  const [filters, setFilters] = useState<SearchFilters>(initialFilters || defaultFilters);
+  const [initialized, setInitialized] = useState(false);
+
+  // Update filters when initialFilters arrives (from cache restore)
+  if (initialFilters && !initialized) {
+    setFilters(initialFilters);
+    setInitialized(true);
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

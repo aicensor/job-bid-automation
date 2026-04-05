@@ -1,101 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import { parseResume } from '@/core/parser/resume-parser';
-import { parseJobDescription } from '@/core/parser/jd-parser';
-import { scoreResume } from '@/core/scorer/composite-scorer';
-import { defaultConfig } from '@/ai/providers';
-import type { Resume, ParsedJob } from '@/lib/types';
+import { generateText } from 'ai';
+import { getModel, defaultConfig } from '@/ai/providers';
 
 // ============================================================================
-// Fit Check API — Uses the same composite scorer as the tailor pipeline
-// Parses JD + each resume, then scores them with the full 5-dimension scorer
+// Stage 2 Fit Check — LLM-based resume-job matching
+// Called after Stage 1 (client-side skill match) passes
+// Uses the analyze model (lightweight, free tier)
 // ============================================================================
 
-interface FitCheckRequest {
-  resumeFiles: string[];
+interface LlmFitRequest {
+  mainSkills: string;       // resume's main skills
+  jobTitle: string;
   jobDescription: string;
   mainTechStacks: string;
-  jobTitle: string;
 }
 
-export interface FitResult {
-  resumeFile: string;
-  fitScore: number;          // 0-100 (same scale as tailor pipeline)
-  missingSkills: string[];   // from ATS scorer
-  breakdown: {
-    atsKeywordMatch: number;
-    semanticSimilarity: number;
-    senioritySignals: number;
-    readability: number;
-    achievementQuality: number;
-  };
-}
-
-// Cache parsed resumes to avoid re-parsing on repeated checks
-const resumeCache = new Map<string, Resume>();
-
-async function getParsedResume(filename: string): Promise<Resume | null> {
-  if (resumeCache.has(filename)) return resumeCache.get(filename)!;
-
-  const filePath = path.join(process.cwd(), 'data', 'base-resume', filename);
-  if (!fs.existsSync(filePath)) return null;
-
-  try {
-    const resume = await parseResume(filePath);
-    resumeCache.set(filename, resume);
-    return resume;
-  } catch {
-    return null;
-  }
+export interface LlmFitResult {
+  score: number;            // 0-100
+  reason: string;
+  proceed: boolean;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { resumeFiles, jobDescription, mainTechStacks, jobTitle } = (await req.json()) as FitCheckRequest;
+    const { mainSkills, jobTitle, jobDescription, mainTechStacks } = (await req.json()) as LlmFitRequest;
 
-    if (!resumeFiles?.length || !jobDescription) {
-      return NextResponse.json({ error: 'resumeFiles and jobDescription required' }, { status: 400 });
+    if (!mainSkills || !jobTitle) {
+      return NextResponse.json({ error: 'mainSkills and jobTitle required' }, { status: 400 });
     }
 
-    const config = { ...defaultConfig };
+    const { model } = getModel('analyze', defaultConfig);
 
-    // Step 1: Parse JD (uses LLM)
-    const parsedJob = await parseJobDescription(jobDescription, config);
+    // Keep tokens low — trim description
+    const jdShort = (jobDescription || '').substring(0, 1500);
 
-    // Step 2: Parse + score all resumes in parallel
-    const results = await Promise.all(
-      resumeFiles.map(async (filename): Promise<FitResult> => {
-        const resume = await getParsedResume(filename);
-        if (!resume) {
-          return {
-            resumeFile: filename,
-            fitScore: 0,
-            missingSkills: [],
-            breakdown: { atsKeywordMatch: 0, semanticSimilarity: 0, senioritySignals: 0, readability: 0, achievementQuality: 0 },
-          };
-        }
+    const { text } = await generateText({
+      model,
+      prompt: `Score how well this candidate's skill set fits this job. Focus on: primary tech stack alignment, role relevance, and whether the candidate could realistically perform the core duties.
 
-        const score = await scoreResume(resume, parsedJob, config);
+CANDIDATE MAIN SKILLS: ${mainSkills}
 
-        return {
-          resumeFile: filename,
-          fitScore: score.overall,
-          missingSkills: score.missingKeywords,
-          breakdown: score.breakdown,
-        };
-      })
-    );
+JOB: ${jobTitle}
+REQUIRED TECH: ${mainTechStacks}
+JOB DESCRIPTION:
+${jdShort}
 
-    // Sort by fit score descending
-    results.sort((a, b) => b.fitScore - a.fitScore);
+Reply ONLY with JSON: {"score": <0-100>, "reason": "<one sentence explaining fit>"}
+Scoring guide:
+- 70-100: Strong fit — primary skills directly match core requirements
+- 40-69: Partial fit — some overlap, transferable skills present
+- 0-39: Weak fit — different primary stack, unlikely to pass screening`,
+      maxTokens: 100,
+      temperature: 0.1,
+    });
 
-    return NextResponse.json(results);
+    // Parse response
+    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const match = cleaned.match(/\{[^}]*"score"\s*:\s*(\d+)[^}]*"reason"\s*:\s*"([^"]*)"[^}]*\}/);
+
+    if (match) {
+      const score = parseInt(match[1]);
+      return NextResponse.json({ score, reason: match[2], proceed: score >= 40 });
+    }
+
+    // Fallback: try to find just a number
+    const numMatch = cleaned.match(/(\d+)/);
+    if (numMatch) {
+      const score = parseInt(numMatch[1]);
+      return NextResponse.json({ score, reason: 'Score parsed from response', proceed: score >= 40 });
+    }
+
+    // LLM response unparseable — let them proceed
+    return NextResponse.json({ score: 50, reason: 'Could not parse LLM response', proceed: true });
   } catch (error) {
-    console.error('[api/bidman/fit-check] Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Fit check failed' },
-      { status: 500 }
-    );
+    console.error('[api/bidman/fit-check] LLM error:', error);
+    // On error, don't block — let them proceed
+    return NextResponse.json({ score: 50, reason: 'Fit check unavailable', proceed: true });
   }
 }
