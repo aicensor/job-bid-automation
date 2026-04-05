@@ -76,30 +76,47 @@ export async function scoreResume(
 }
 
 /**
- * Score achievement quality — do bullets have quantified metrics?
+ * Score achievement quality — do bullets demonstrate concrete impact?
+ * Uses a tiered scoring system:
+ *   - Hard metrics (numbers, $, %) → full credit (1.0)
+ *   - Concrete specifics (named systems, scope, before/after) → partial credit (0.6)
+ *   - Generic/vague → no credit (0)
  */
 function scoreAchievementQuality(resume: Resume): number {
   const allBullets = resume.experience.flatMap(e => e.bullets);
   if (allBullets.length === 0) return 0;
 
-  // Patterns that indicate quantified achievements
-  const metricPatterns = [
+  // Tier 1: Hard quantified metrics (full credit)
+  const hardMetricPatterns = [
     /\d+%/,                          // percentages
     /\$[\d,.]+[KkMmBb]?/,           // dollar amounts
-    /\d+[xX]/,                       // multipliers (3x, 10x)
-    /\d+\+?\s*(users|customers|engineers|team|requests|events)/i,  // scale
-    /reduced|increased|improved|grew|saved|cut|boosted/i,          // impact verbs
-    /\d+\s*(ms|seconds|minutes|hours)/i,  // time metrics
+    /\d+[xX]\b/,                     // multipliers (3x, 10x)
+    /\d+\+?\s*(users|customers|engineers|team|requests|events|services|regions|markets|departments)/i,
+    /\d+\s*(ms|seconds|minutes|hours|days)/i,  // time metrics
+    /\d+\s*(rps|rpm|req\/s|tps|qps)/i,         // throughput
   ];
 
-  let bulletsWithMetrics = 0;
+  // Tier 2: Concrete specifics without hard numbers (partial credit)
+  const concretePatterns = [
+    /reduced|increased|improved|grew|saved|cut|boosted|accelerated|eliminated|streamlined/i, // impact verbs
+    /from\s+\S+\s+to\s+\S+/i,       // before/after ("from monolith to microservices")
+    /zero[- ]downtime|100%\s*uptime|99\.\d+%/i,  // reliability specifics
+    /\b(SOC|HIPAA|GDPR|PCI|WCAG|ISO)\b/i,        // compliance standards
+    /\b(team of|across|company-wide|org-wide|platform|enterprise)\b/i, // scope indicators
+    /\b(migration|rewrite|redesign|launch|shipped|deployed to production)\b/i, // delivery specifics
+    /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:'s)?\s+(?:API|SDK|platform|service|system|pipeline|dashboard)\b/, // named systems
+  ];
+
+  let totalScore = 0;
   for (const bullet of allBullets) {
-    if (metricPatterns.some(p => p.test(bullet))) {
-      bulletsWithMetrics++;
+    if (hardMetricPatterns.some(p => p.test(bullet))) {
+      totalScore += 1.0;
+    } else if (concretePatterns.some(p => p.test(bullet))) {
+      totalScore += 0.6;
     }
   }
 
-  return (bulletsWithMetrics / allBullets.length) * 100;
+  return Math.min((totalScore / allBullets.length) * 100, 100);
 }
 
 function findMissingKeywords(resume: Resume, job: ParsedJob): string[] {
