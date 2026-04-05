@@ -4,6 +4,7 @@ import { analyzeGaps } from './gap-analyzer';
 import { rewriteBullets } from './rewriter';
 import { reorderSections } from './section-reorderer';
 import { generateSummary } from './summary-generator';
+import { tailorSkills } from './skills-tailorer';
 import { injectKeywords } from '@/core/refiner/keyword-injector';
 import { cleanAiPhrases } from '@/core/refiner/ai-phrase-cleaner';
 import { validateTruth } from '@/core/refiner/truth-validator';
@@ -68,6 +69,11 @@ export async function tailorResume(input: PipelineInput): Promise<TailorResult> 
     ]);
     tailored = { ...rewrittenResume, summary: summaryResume.summary };
     log('info', 'step-4+5', 'Done: bullets rewritten + summary generated');
+
+    // Step 5b: Tailor skills section
+    log('info', 'step-5b', 'Tailoring skills section...');
+    tailored = await tailorSkills(tailored, parsedJob, config);
+    log('info', 'step-5b', 'Done');
 
     // Step 6: Reorder sections
     log('info', 'step-6', 'Reordering sections...');
