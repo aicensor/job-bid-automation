@@ -13,9 +13,22 @@ dist/
 .env.local
 .env.production
 
-# Output
-data/output/*.pdf
-data/output/*.docx
+# Data (runtime)
+data/app.db
+data/app.db-shm
+data/app.db-wal
+data/base-resume/
+data/output/
+data/bidman-log.json
+data/queue.json
+
+# Service account keys
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!next.config.json
+!components.json
 
 # IDE
 .vscode/
